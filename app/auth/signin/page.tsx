@@ -3,18 +3,18 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Github } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { Facebook } from "lucide-react";
+
 import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 
 export default function SignInPage() {
   return (
     <>
-      <Header />
-      <main className="min-h-screen bg-gradient-to-br from-rose-50/20 via-amber-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 -mt-[900px]">
-        <div className="container mx-auto px-4 py-24">
+      <main className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-rose-50/20 via-amber-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+        <div className="container mx-auto px-4 py-8">
+          {" "}
+          {/* Adjusted padding here, or even remove it if flex centering is enough */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -126,10 +126,10 @@ export default function SignInPage() {
                   >
                     <Button
                       variant="outline"
-                      className="w-full flex items-center justify-center gap-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      className="w-full flex items-center justify-center gap-2 border-slate-200 dark:border-slate-700 hover:bg-blue-500 dark:hover:bg-slate-700"
                     >
-                      <Github className="w-5 h-5" />
-                      <span>GitHub</span>
+                      <Facebook className="w-5 h-5" />
+                      <span>Facebook</span>
                     </Button>
                   </motion.div>
                 </div>
@@ -148,7 +148,6 @@ export default function SignInPage() {
           </motion.div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

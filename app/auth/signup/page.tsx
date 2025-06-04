@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Github } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+
 import { FcGoogle } from 'react-icons/fc';
 import Link from 'next/link';
 
 export default function SignUpPage() {
   return (
     <>
-      <Header />
-      <main className="min-h-screen bg-gradient-to-br from-rose-50/20 via-amber-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 -mt-[900px]">
+      <main className="min-h-screen bg-gradient-to-br from-rose-50/20 via-amber-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
         <div className="container mx-auto px-4 py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -159,7 +157,6 @@ export default function SignUpPage() {
           </motion.div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

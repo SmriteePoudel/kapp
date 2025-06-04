@@ -26,7 +26,7 @@ export default function Header() {
     { name: "Pages", href: "/pages" },
   ];
   return (
-    <header className="min-h-screen">
+<>
       {/* Header */}
       <div className="fixed top-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 dark:supports-[backdrop-filter]:bg-slate-900/90 z-50 border-b border-slate-200 dark:border-slate-700 shadow-xl">
         <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -144,6 +144,6 @@ export default function Header() {
         <div className="absolute inset-0 opacity-10 mix-blend-soft-light" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/30 dark:from-slate-900/30 to-transparent" />
       </div>
-    </header>
+      </>
   );
 }

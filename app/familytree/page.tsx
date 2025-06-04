@@ -1,280 +1,443 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { FaTree, FaUser, FaSearch, FaInfoCircle } from "react-icons/fa";
-import { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import Image from "next/image";
 
-interface Member {
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { FamilyMember } from "@/types/familytree";
+import {
+  familyMembers,
+  buildFamilyTree,
+  familyPhotos,
+  familyRecipes,
+  featuredStories,
+  familyEvents,
+} from "@/data/family";
+import { FeaturedStories } from "@/components/family/FeaturedStory";
+import { ViewControls } from "@/components/family/ViewControls";
+import { FamilyLegacySection } from "@/components/family/FamilyLegacySection";
+import { MapSection } from "@/components/family/MapSection";
+import { RelationshipExplorer } from "@/components/family/RelationshipExplorer";
+import { TreeView } from "@/components/family/TreeView";
+import { SvgTreeView } from "@/components/family/SvgTreeView";
+import { TimelineView } from "@/components/family/TimelineView";
+import { CardGridSection } from "@/components/family/CardGridSection";
+import { FamilyTreeSkeleton } from "@/components/family/FamilyTreeSkeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { Users, Utensils, Calendar, BookOpen, Heart } from "lucide-react";
+
+// Debounce delay
+const DEBOUNCE_DELAY = 300; // ms
+
+// Add these interfaces at the top with other imports
+interface Recipe {
   id: number;
-  name: string;
-  birthYear: number;
-  relation: string;
-  avatar: string;
+  title: string;
+  story: string;
+  memberId: number;
+}
+
+interface Reunion {
+  title: string;
+  content: string;
+  cta: string;
+}
+
+interface Memory {
+  type: "photo" | "story" | "recipe";
+  title: string;
+  author: string;
+  content: string;
 }
 
 export default function FamilyTreePage() {
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [viewMode, setViewMode] = useState<"tree" | "timeline">("tree");
+  const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  const [expandedNodes, setExpandedNodes] = useState<Set<number>>(
+    new Set([1, 2])
+  );
+  const [viewMode, setViewMode] = useState<"tree" | "timeline" | "svg">("tree");
+  const [showRelationshipExplorer, setShowRelationshipExplorer] =
+    useState(false);
+  const [selectedGeneration, setSelectedGeneration] = useState<number | null>(
+    null
+  );
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [person1Id, setPerson1Id] = useState<string>("");
+  const [person2Id, setPerson2Id] = useState<string>("");
+  const [relationship, setRelationship] = useState<string | null>(null);
 
-  const sampleMembers: Member[] = [
-    {
-      id: 1,
-      name: "Ramesh Khanal",
-      birthYear: 1950,
-      relation: "Patriarch",
-      avatar: "/images/group.jpeg",
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, DEBOUNCE_DELAY);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Load family data
+  useEffect(() => {
+    const loadFamilyData = async () => {
+      try {
+        setLoading(true);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const familyData = buildFamilyTree(familyMembers);
+        setMembers(familyData);
+      } catch (err) {
+        setError(
+          `Failed to load family tree data: ${
+            err instanceof Error ? err.message : "Unknown error"
+          }`
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFamilyData();
+  }, []);
+
+  // Find relationship
+  const findRelationship = useCallback(
+    (id1: number, id2: number): string => {
+      if (id1 === id2) return "Same person";
+      const person1 = members.find((m) => m.id === id1);
+      const person2 = members.find((m) => m.id === id2);
+      if (!person1 || !person2) return "Member not found";
+      if (person1.parentIds.includes(person2.id)) {
+        return `${person2.name} is ${person1.name}'s parent`;
+      }
+      if (person2.parentIds.includes(person1.id)) {
+        return `${person1.name} is ${person2.name}'s parent`;
+      }
+      if (person1.spouseId === person2.id) {
+        return `${person1.name} is married to ${person2.name}`;
+      }
+      const commonParents = person1.parentIds.filter((id) =>
+        person2.parentIds.includes(id)
+      );
+      if (commonParents.length > 0) {
+        return `${person1.name} and ${person2.name} are siblings`;
+      }
+      return "Relationship not directly traceable";
     },
-    {
-      id: 2,
-      name: "Sita Khanal",
-      birthYear: 1955,
-      relation: "Matriarch",
-      avatar: "/images/group.jpeg",
-    },
-    {
-      id: 3,
-      name: "Gopal Khanal",
-      birthYear: 1980,
-      relation: "Son",
-      avatar: "/images/group.jpeg",
-    },
-  ];
+    [members]
+  );
 
-  return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-amber-50/50 to-white dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 -mt-[900px]">
-        <div className="container mx-auto px-4 py-12 relative">
-          {/* Header Section */}
-          <header className="text-center mb-16 space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-600 to-amber-800 dark:from-amber-400 dark:to-amber-600 bg-clip-text text-transparent">
-                Khanal Family Legacy
-              </h1>
-              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-                Tracing our roots back to 18th century Nepal. Explore 5
-                generations of family history, achievements, and connections.
-              </p>
-            </motion.div>
+  // Filter members
+  const filteredMembers = useMemo(() => {
+    let filtered = members;
+    if (debouncedSearchTerm) {
+      filtered = filtered.filter(
+        (member) =>
+          member.name
+            .toLowerCase()
+            .includes(debouncedSearchTerm.toLowerCase()) ||
+          (member.bio &&
+            member.bio
+              .toLowerCase()
+              .includes(debouncedSearchTerm.toLowerCase()))
+      );
+    }
+    if (selectedGeneration !== null) {
+      filtered = filtered.filter(
+        (member) => member.generation === selectedGeneration
+      );
+    }
+    return filtered;
+  }, [members, debouncedSearchTerm, selectedGeneration]);
 
-            {/* Interactive Controls */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <div className="relative w-full sm:w-64">
-                <input
-                  type="text"
-                  placeholder="Search family members..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-600 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                />
-                <FaSearch className="absolute left-3 top-3 text-amber-500 dark:text-amber-400" />
-              </div>
+  // Group by generation
+  const membersByGeneration = useMemo(() => {
+    const grouped = filteredMembers.reduce((acc, member) => {
+      const gen = member.generation || 1;
+      if (!acc[gen]) acc[gen] = [];
+      acc[gen].push(member);
+      return acc;
+    }, {} as Record<number, FamilyMember[]>);
+    return grouped;
+  }, [filteredMembers]);
 
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setViewMode("tree")}
-                  variant={viewMode === "tree" ? "default" : "outline"}
-                  className="gap-2"
-                >
-                  <FaTree className="w-4 h-4" />
-                  Tree View
-                </Button>
-                <Button
-                  onClick={() => setViewMode("timeline")}
-                  variant={viewMode === "timeline" ? "default" : "outline"}
-                  className="gap-2"
-                >
-                  <FaInfoCircle className="w-4 h-4" />
-                  Timeline
-                </Button>
-              </div>
-            </div>
-          </header>
+  // SVG tree data
+  const svgTreeData = useMemo(() => {
+    const nodeWidth = 150;
+    const nodeHeight = 150;
+    const nodes = members.map((m, i) => ({
+      id: m.id,
+      name: m.name,
+      x: i * nodeWidth + 20,
+      y: (m.generation ?? 1) * nodeHeight + 20,
+    }));
+    const links = members.flatMap((m) =>
+      m.parentIds.map((parentId) => ({
+        source: parentId,
+        target: m.id,
+      }))
+    );
+    return { nodes, links };
+  }, [members]);
 
-          {/* Main Content Area */}
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Family Tree Visualization */}
-            <div className="lg:col-span-3 relative h-[800px] w-full rounded-3xl bg-white dark:bg-slate-800 shadow-2xl dark:shadow-slate-900 overflow-hidden">
-              {/* 3D Perspective Container */}
-              <motion.div
-                className="relative h-full w-full perspective-1000"
-                whileHover={{ scale: 0.98 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Interactive Background */}
-                <div className="absolute inset-0 bg-[url('/images/heritage-pattern.svg')] opacity-10 dark:opacity-[0.03] bg-repeat" />
+  // Timeline items
+  const timelineItems = useMemo(() => {
+    const memberItems = members.map((m) => ({
+      type: "member" as const,
+      date: m.birthDate,
+      data: m,
+    }));
+    const eventItems = familyEvents.map((e) => ({
+      type: "event" as const,
+      date: e.date,
+      data: e,
+    }));
+    return [...memberItems, ...eventItems].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }, [members]);
 
-                {/* Central Ancestor Node */}
-                <motion.div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                >
-                  <div className="relative group cursor-pointer">
-                    <div className="absolute inset-0 bg-amber-500/10 rounded-full animate-pulse" />
-                    <div className="h-32 w-32 rounded-full bg-amber-500/80 dark:bg-amber-400/90 border-4 border-amber-600/30 dark:border-amber-500/20 flex flex-col items-center justify-center text-white shadow-xl hover:scale-105 transition-transform p-4">
-                      <Image
-                        src="/images/group.jpeg"
-                        alt="Ancestor"
-                        className="w-16 h-16 rounded-full mb-2 border-2 border-white/30"
-                      />
-                      <span className="font-semibold text-sm text-center leading-tight">
-                        Ramesh Khanal
-                      </span>
-                      <span className="text-xs opacity-75">b. 1950</span>
-                    </div>
-                  </div>
-                </motion.div>
+  const toggleNode = (memberId: number) => {
+    setExpandedNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(memberId)) {
+        newSet.delete(memberId);
+      } else {
+        newSet.add(memberId);
+      }
+      return newSet;
+    });
+  };
 
-                {/* Dynamic Branch Nodes */}
-                {sampleMembers.map((member, index) => (
-                  <motion.div
-                    key={member.id}
-                    className="absolute z-20"
-                    style={{
-                      left: `${20 + index * 20}%`,
-                      top: `${30 + index * 10}%`,
-                    }}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.2 + 0.5 }}
-                    whileHover={{ scale: 1.1 }}
-                    onClick={() => setSelectedMember(member)}
-                  >
-                    <div className="h-20 w-20 rounded-full bg-slate-100 dark:bg-slate-700 border-2 border-amber-500/30 flex flex-col items-center justify-center cursor-pointer hover:bg-amber-50 dark:hover:bg-slate-600 transition-all group">
-                      <Image
-                        src={member.avatar}
-                        alt={member.name}
-                        className="w-12 h-12 rounded-full mb-1 border-2 border-amber-500/20 group-hover:border-amber-500/40 transition-colors"
-                      />
-                      <span className="text-xs text-slate-700 dark:text-slate-200 text-center px-1">
-                        {member.name.split(" ")[0]}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
+  const getSpouse = (spouseId: number | null) => {
+    if (!spouseId) return null;
+    return members.find((m) => m.id === spouseId) ?? null;
+  };
 
-                {/* Connection Lines with Animation */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {sampleMembers.map((_, index) => (
-                    <motion.line
-                      key={index}
-                      x1="50%"
-                      y1="50%"
-                      x2={`${20 + index * 20}%`}
-                      y2={`${30 + index * 10}%`}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-amber-500/30 dark:text-amber-400/20"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 1, delay: index * 0.2 }}
-                    />
-                  ))}
-                </svg>
-              </motion.div>
-            </div>
+  const getChildren = (parentId: number) => {
+    return members.filter((member) => member.parentIds.includes(parentId));
+  };
 
-            {/* Family Statistics Sidebar */}
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                  <FaInfoCircle className="w-5 h-5" />
-                  Family Stats
-                </h3>
-                <ul className="space-y-3 text-slate-600 dark:text-slate-300">
-                  <li>• 5 Generations Documented</li>
-                  <li>• 127 Family Members</li>
-                  <li>• 18 Countries Represented</li>
-                  <li>• Oldest Member: 104 years</li>
-                  <li>• Youngest Member: 2 months</li>
-                </ul>
-              </div>
+  if (loading) {
+    return <FamilyTreeSkeleton />;
+  }
 
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                  <FaUser className="w-5 h-5" />
-                  Recent Additions
-                </h3>
-                <div className="space-y-4">
-                  {sampleMembers.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3">
-                      <Image
-                        src={member.avatar}
-                        alt={member.name}
-                        className="w-10 h-10 rounded-full border-2 border-amber-500/20"
-                      />
-                      <div>
-                        <p className="font-medium text-slate-700 dark:text-slate-200">
-                          {member.name}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                          {member.relation}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Member Detail Modal */}
-          <AnimatePresence>
-            {selectedMember && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                onClick={() => setSelectedMember(null)}
-              >
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0.8 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-start gap-6">
-                    <Image
-                      src={selectedMember.avatar}
-                      alt={selectedMember.name}
-                      className="w-24 h-24 rounded-xl border-4 border-amber-500/20"
-                    />
-                    <div>
-                      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                        {selectedMember.name}
-                      </h2>
-                      <p className="text-amber-600 dark:text-amber-400 mb-2">
-                        {selectedMember.relation}
-                      </p>
-                      <div className="space-y-1 text-slate-600 dark:text-slate-300">
-                        <p>Born: {selectedMember.birthYear}</p>
-                        <p>Generation: 3rd</p>
-                        <p>Branch: Maternal</p>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => setSelectedMember(null)}
-                    className="mt-6 w-full gap-2"
-                  >
-                    Close Details
-                  </Button>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-amber-50 dark:from-slate-900 dark:to-slate-800 py-12">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-md mx-auto text-center">
+            <CardContent className="p-8">
+              <Users className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-2">
+                Failed to Load Family Tree
+              </h2>
+              <p className="text-slate-600 dark:text-slate-300 mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
-      <Footer />
-    </>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-amber-50 dark:from-slate-900 dark:to-slate-800">
+      {/* <HeroSection /> */}
+      <div className="container mx-auto px-4 py-8 mt-16">
+        <ViewControls
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedGeneration={selectedGeneration}
+          setSelectedGeneration={setSelectedGeneration}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex flex-col gap-8">
+          {/* Full-width Featured Story section */}
+          <FeaturedStories
+            currentStoryIndex={currentStoryIndex}
+            setCurrentStoryIndex={setCurrentStoryIndex}
+            stories={featuredStories}
+          />
+          {/* Family tree content below */}
+          <div className="w-full">
+            {/* Add your family tree content here */}
+          </div>
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="w-full">
+          <RelationshipExplorer
+            members={members}
+            person1Id={person1Id}
+            setPerson1Id={setPerson1Id}
+            person2Id={person2Id}
+            setPerson2Id={setPerson2Id}
+            relationship={relationship}
+            setRelationship={setRelationship}
+            findRelationship={findRelationship}
+            show={showRelationshipExplorer}
+            setShow={setShowRelationshipExplorer}
+          />
+          {viewMode === "timeline" ? (
+            <TimelineView timelineItems={timelineItems} />
+          ) : viewMode === "svg" ? (
+            <SvgTreeView svgTreeData={svgTreeData} members={members} />
+          ) : (
+            <TreeView
+              membersByGeneration={membersByGeneration}
+              expandedNodes={expandedNodes}
+              toggleNode={toggleNode}
+              getSpouse={getSpouse}
+              getChildren={getChildren}
+              photos={familyPhotos}
+            />
+          )}
+          <CardGridSection
+            title="Family Recipes"
+            description="Savor the flavors of our heritage with these cherished family recipes."
+            items={familyRecipes}
+            renderItem={(recipe: Recipe) => (
+              <Card className="bg-white dark:bg-slate-800 hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Utensils className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      By Member {recipe.memberId}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
+                    {recipe.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    {recipe.story}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            ctaText="Share Your Recipe"
+            ctaAction={() => {}}
+          />
+          <CardGridSection
+            title="Family Reunions"
+            description="Join us for our next gathering or share memories from past reunions."
+            items={[
+              {
+                title: "Upcoming Reunion: Summer 2026",
+                content:
+                  "Plan to join us in Kathmandu for a weekend of celebration.",
+                cta: "RSVP Now",
+              },
+              {
+                title: "Past Reunion: April 2024",
+                content:
+                  "Share your photos and stories from our last gathering.",
+                cta: "Upload Photos",
+              },
+            ]}
+            renderItem={(reunion: Reunion) => (
+              <Card className="bg-white dark:bg-slate-800">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
+                    {reunion.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
+                    {reunion.content}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/20"
+                  >
+                    {reunion.cta}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          />
+          <CardGridSection
+            title="Family Memory Wall"
+            description="Share your favorite family memories, photos, and stories. Help us preserve our heritage for future generations."
+            items={[
+              {
+                type: "photo",
+                title: "Family Picnic 2023",
+                author: "Shared by Priya",
+                content: "Remember our amazing day at the park!",
+              },
+              {
+                type: "story",
+                title: "Grandpa's Wisdom",
+                author: "Shared by Prakash",
+                content:
+                  "He always said 'Education is the light that guides us through darkness'",
+              },
+              {
+                type: "recipe",
+                title: "Grandma's Dal Bhat",
+                author: "Shared by Kamala",
+                content: "The secret ingredient was always love and patience",
+              },
+            ]}
+            renderItem={(memory: Memory) => (
+              <Card className="bg-white dark:bg-slate-800 hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    {memory.type === "photo" && (
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                    )}
+                    {memory.type === "story" && (
+                      <BookOpen className="h-4 w-4 text-emerald-500" />
+                    )}
+                    {memory.type === "recipe" && (
+                      <Heart className="h-4 w-4 text-rose-500" />
+                    )}
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      {memory.author}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
+                    {memory.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    {memory.content}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            ctaText="Share Your Memory"
+            ctaAction={() => {}}
+          />
+          <FamilyLegacySection />
+
+          {filteredMembers.length === 0 && !loading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <Users className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-2">
+                No family members found
+              </h3>
+              <p className="text-slate-600 dark:text-slate-300">
+                Try adjusting your search or filter criteria
+              </p>
+            </motion.div>
+          )}
+          <MapSection />
+          <div className="text-center mt-16 py-8 border-t border-slate-200 dark:border-slate-700">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Family data shared with consent • Living member&apos;s information
+              protected
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
