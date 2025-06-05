@@ -27,13 +27,37 @@ export default function Birthday() {
   }, []);
 
   const birthdays = [
-    { name: "John Doe", birthDate: "1990-01-01", photo: "/images/group.jpeg" },
+    {
+      name: "John Doe",
+      birthDate: "1990-01-01",
+      photo: "/images/oldman.webp",
+    },
     {
       name: "Jane Smith",
       birthDate: "1985-05-15",
-      photo: "/images/group.jpeg",
+      photo: "/images/oldwoman.webp",
     },
-    { name: "John Doe", birthDate: "1990-01-01", photo: "/images/group.jpeg" },
+    {
+      name: "Rajesh Khanal",
+      birthDate: "1990-01-01",
+      photo: "/images/oldman1.webp",
+    },
+
+    {
+      name: "Sita Devi Khanal",
+      birthDate: "1990-01-01",
+      photo: "/images/olwoman2.webp",
+    },
+    {
+      name: "Radha Khanal",
+      birthDate: "1993-11-17",
+      photo: "/images/oldwoman4.webp",
+    },
+    {
+      name: "Som Khanal",
+      birthDate: "1992-12-25",
+      photo: "/images/oldman4.webp",
+    },
   ];
 
   return (

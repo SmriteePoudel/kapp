@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { familyMembers } from '../../data/family';
 
 import {
   HeartHandshake,
@@ -12,38 +13,6 @@ import {
 } from "lucide-react";
 
 export default function FamilyPage() {
-  const familyMembers = [
-    {
-      name: "Krishna Khanal",
-      role: "Patriarch",
-      generation: "2nd",
-      photo: "/images/group.jpeg",
-    },
-    {
-      name: "Radha Khanal",
-      role: "Matriarch",
-      generation: "2nd",
-      photo: "/images/group.jpeg",
-    },
-    {
-      name: "Ramesh Khanal",
-      role: "Eldest Son",
-      generation: "3rd",
-      photo: "/images/group.jpeg",
-    },
-    {
-      name: "Sita Khanal",
-      role: "Daughter",
-      generation: "3rd",
-      photo: "/images/group.jpeg",
-    },
-    {
-      name: "Hari Khanal",
-      role: "Youngest Son",
-      generation: "3rd",
-      photo: "/images/group.jpeg",
-    },
-  ];
 
   const familyTimeline = [
     {
@@ -126,7 +95,7 @@ export default function FamilyPage() {
                   <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
                     <div className="relative h-20 w-20 md:h-24 md:w-24 rounded-full overflow-hidden border-2 border-rose-500">
                       <Image
-                        src={member.photo}
+                        src={member.image}
                         alt={member.name}
                         fill
                         className="object-cover"

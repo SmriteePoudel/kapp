@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, HeartHandshake, Baby, ChevronRight } from "lucide-react";
-import { members } from "@/data/family";
+import { familyMembers, FamilyMember } from "@/data/family";
 
 export default function MembersPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -17,13 +17,13 @@ export default function MembersPage() {
     { id: "children", label: "Children", icon: Baby },
   ];
 
-  const filteredMembers = members.filter((member) => {
+  const filteredMembers = familyMembers.filter((member: FamilyMember) => {
     if (selectedCategory === "all") return true;
     if (selectedCategory === "parents") {
-      return ["Father", "Mother"].includes(member.relationship);
+      return member.generation === 2; // Parents are in generation 2
     }
     if (selectedCategory === "children") {
-      return ["Son", "Daughter"].includes(member.relationship);
+      return member.generation === 3; // Children are in generation 3
     }
     return true;
   });
@@ -80,13 +80,13 @@ export default function MembersPage() {
             >
               <div className="border-2 border-slate-200 dark:border-slate-700 rounded-xl p-6 transition-all hover:border-rose-500 dark:hover:border-rose-400 hover:shadow-xl dark:hover:shadow-rose-500/10">
                 {/* Member Image */}
-                <div className="relative h-64 rounded-lg overflow-hidden mb-6">
+                <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden mb-6">
                   <Image
-                    src={member.photo}
+                    src={member.image}
                     alt={member.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform"
-                    priority
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" />
                 </div>
@@ -97,19 +97,22 @@ export default function MembersPage() {
                 </h3>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="px-3 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm rounded-full">
-                    {member.relationship}
+                    {member.role}
                   </span>
                   <span className="text-slate-500 dark:text-slate-400 text-sm">
-                    {member.birthdate}
+                    {member.birthDate}
                   </span>
                 </div>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                   {member.bio}
                 </p>
 
                 {/* Action Button */}
                 <Link href={`/members/${member.slug}`}>
-                  <Button variant="outline" className="w-full group/btn">
+                  <Button
+                    variant="outline"
+                    className="w-full bg-rose-500 hover:bg-rose-600 text-white dark:bg-rose-500 dark:hover:bg-rose-00 border-rose-500 dark:border-rose-600 group/btn"
+                  >
                     View Full Profile
                     <ChevronRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                   </Button>

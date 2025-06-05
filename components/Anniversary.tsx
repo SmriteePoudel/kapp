@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function Anniversary() {
   const anniversaries = {
     name: "Krishna & Radha Khanal",
-    photo: "/images/group.jpeg",
+    photo: "/images/krishna.png",
     dateOfBirth: "1955-04-20",
     dateOfDeath: "2023-01-15",
     slogan: "Forever in our hearts",

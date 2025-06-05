@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FeaturedStory } from "@/data/family";
 import Image from "next/image";
+import { FeaturedStory } from "@/data/family";
+
 
 interface FeaturedStoriesProps {
   currentStoryIndex: number;

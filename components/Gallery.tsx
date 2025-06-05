@@ -5,14 +5,16 @@ import Image from "next/image";
 
 export default function Gallery() {
   const [mounted, setMounted] = useState(false);
-  const [randomPositions, setRandomPositions] = useState<Array<{ left: string; top: string }>>([]);
+  const [randomPositions, setRandomPositions] = useState<
+    Array<{ left: string; top: string }>
+  >([]);
 
   useEffect(() => {
     setMounted(true);
     setRandomPositions(
       Array.from({ length: 12 }, () => ({
         left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`
+        top: `${Math.random() * 100}%`,
       }))
     );
   }, []);
@@ -24,8 +26,8 @@ export default function Gallery() {
       transition: {
         staggerChildren: 0.1,
         delayChildren: 0.3,
-      }
-    }
+      },
+    },
   };
 
   const item = {
@@ -35,15 +37,15 @@ export default function Gallery() {
       opacity: 1,
       transition: {
         type: "spring",
-        stiffness: 100
-      }
-    }
+        stiffness: 100,
+      },
+    },
   };
 
   return (
     <section className="py-20 bg-white dark:bg-slate-900">
       <div className="container mx-auto px-4">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -52,7 +54,7 @@ export default function Gallery() {
           Family Gallery
         </motion.h2>
 
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
           variants={container}
           initial="hidden"
@@ -60,26 +62,26 @@ export default function Gallery() {
           viewport={{ once: true, margin: "-100px" }}
         >
           {[...Array(8)].map((_, i) => (
-            <motion.div 
-              key={i} 
+            <motion.div
+              key={i}
               className="relative aspect-square rounded-xl overflow-hidden group"
               variants={item}
             >
               <div className="absolute inset-0 bg-amber-500/10 dark:bg-amber-500/20 z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              
+
               <motion.div
                 className="relative h-full w-full"
-                whileHover={{ 
+                whileHover={{
                   scale: 1.05,
-                  rotate: Math.random() * 2 - 1 
+                  rotate: Math.random() * 2 - 1,
                 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <Image
-                  src={`/images/group.jpeg`}
+                  src="/images/girl.webp"
                   alt="Family photo"
                   fill
-                  className="object-cover"
+                  className="object-contain"
                 />
               </motion.div>
 
@@ -98,12 +100,12 @@ export default function Gallery() {
                 style={pos}
                 animate={{
                   y: [0, -20, 0],
-                  opacity: [0.2, 0.8, 0.2]
+                  opacity: [0.2, 0.8, 0.2],
                 }}
                 transition={{
                   duration: 3 + Math.random() * 2,
                   repeat: Infinity,
-                  delay: Math.random() * 2
+                  delay: Math.random() * 2,
                 }}
               />
             ))}

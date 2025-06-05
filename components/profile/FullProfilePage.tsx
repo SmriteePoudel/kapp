@@ -16,6 +16,10 @@ import {
   Star,
   Trophy,
   Share2,
+  Facebook,
+  Instagram,
+  Twitter,
+  Linkedin,
 } from "lucide-react";
 import { Member } from "@/types/member";
 
@@ -78,7 +82,7 @@ export function FullProfilePageClient({ member }: FullProfilePageClientProps) {
             <div className="relative">
               <div className="w-48 h-48 rounded-full overflow-hidden ring-8 ring-white/30 backdrop-blur-sm">
                 <Image
-                  src={member.photo}
+                  src={member.image}
                   alt={member.name}
                   fill
                   className="object-cover"
@@ -246,6 +250,63 @@ export function FullProfilePageClient({ member }: FullProfilePageClientProps) {
                   </span>
                 </div>
               </div>
+
+              {/* Social Media Links */}
+              {member.socialLinks && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3">
+                    Social Media
+                  </h4>
+                  <div className="flex flex-wrap gap-3">
+                    {member.socialLinks.facebook && (
+                      <a
+                        href={`https://facebook.com/${member.socialLinks.facebook}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                      >
+                        <Facebook className="w-5 h-5" />
+                      </a>
+                    )}
+                    {member.socialLinks.instagram && (
+                      <a
+                        href={`https://instagram.com/${member.socialLinks.instagram.replace(
+                          "@",
+                          ""
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/50 transition-colors"
+                      >
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                    {member.socialLinks.twitter && (
+                      <a
+                        href={`https://twitter.com/${member.socialLinks.twitter.replace(
+                          "@",
+                          ""
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-lg hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
+                      >
+                        <Twitter className="w-5 h-5" />
+                      </a>
+                    )}
+                    {member.socialLinks.linkedin && (
+                      <a
+                        href={`https://linkedin.com/in/${member.socialLinks.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                      >
+                        <Linkedin className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
 
             {/* Skills */}

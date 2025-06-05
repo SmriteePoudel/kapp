@@ -4,7 +4,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { Users } from "lucide-react";
 import { FamilyMember } from "@/types/familytree";
-import { FamilyEvent } from "@/data/family";
+
+interface FamilyEvent {
+  id: number;
+  title: string;
+  date: string;
+  description: string;
+  memberIds: number[];
+}
 
 type TimelineItem =
   | { type: "member"; date: string; data: FamilyMember }

@@ -14,7 +14,7 @@ export const blogPosts = [
   <p>These adaptations aren’t compromises—they are creative continuations. Our traditions are stronger not in their rigidity, but in their flexibility. In the Khanal Pariwar, the past and future walk hand-in-hand.</p>`,
     date: "March 15, 2024",
     tags: ["Culture", "Traditions", "Family"],
-    image: "/images/group.jpeg",
+    image: "/images/pexels.png",
     readTime: "5 min read",
     author: "Ashok Khanal",
     likes: 42,

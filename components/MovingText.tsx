@@ -15,6 +15,8 @@ export default function MovingText() {
         className="absolute flex whitespace-nowrap"
         initial={{ translateX: '-50%'}}
         animate={{ translateX: '0'}}
+        whileHover={{ animationPlayState: 'paused' }}
+
         transition={{
           repeat: Infinity,
           duration: 30,
