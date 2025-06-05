@@ -1,8 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+
 import {
   HeartHandshake,
   Users,
@@ -76,8 +75,7 @@ export default function FamilyPage() {
 
   return (
     <>
-      <Header />
-      <main className="bg-white dark:bg-slate-900 pt-20 -mt-[900px]">
+      <main className="bg-white dark:bg-slate-900 pt-20">
         <section className="relative py-16 md:py-24 flex items-center justify-center">
           <div className="absolute inset-0">
             <Image
@@ -265,7 +263,6 @@ export default function FamilyPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

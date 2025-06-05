@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +30,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Header />
           {children}
+          <Footer />
           <NextTopLoader color="#C16AFB" />
         </ThemeProvider>
       </body>
