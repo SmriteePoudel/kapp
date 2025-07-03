@@ -5,7 +5,7 @@ import Image from "next/image";
 export default function Anniversary() {
   const anniversaries = {
     name: "Krishna & Radha Khanal",
-    photo: "/images/group.jpeg",
+    photo: "/images/bird.png",
     dateOfBirth: "1955-04-20",
     dateOfDeath: "2023-01-15",
     slogan: "Forever in our hearts",

@@ -1,13 +1,52 @@
-import { FamilyMember } from '@/types/familytree';
-import { Member } from '@/types/member';
+// ... other interfaces ...
 
+import { Member } from "@/types/member";
 
-export interface FamilyLocation {
+export interface FamilyMember {
   id: number;
   name: string;
-  lat: number;
-  lng: number;
-  members: number[];
+  role: string;
+  parentIds: number[];
+  spouseId: number | null;
+  birthDate: string;
+  deathDate: string | null;
+  image: string;
+  bio: string;
+  slug: string;
+  generation: number;
+  // Additional Member properties
+  fullBio: string;
+  birthdate: string;
+  relationship: string;
+  email: string;
+  phone: string;
+  address: string;
+  education: string[];
+  career: string[];
+  hobbies: string[];
+  achievements: string[];
+  favoriteQuote: string;
+  personalityTraits: string[];
+  skills: string[];
+  languages: string[];
+  socialLinks?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+  };
+}
+
+export interface FeaturedStory {
+  id: number;
+  title: string;
+  excerpt: string;
+  memberId: number;
+  slug: string;
+  content: string;
+  image: string;
+  author: string;
+  date: string;
 }
 
 export interface FamilyPhoto {
@@ -18,75 +57,376 @@ export interface FamilyPhoto {
   memberIds: number[];
 }
 
-export interface FamilyRecipe {
-  id: number;
-  title: string;
-  story: string;
-  memberId: number;
-}
+// ... other data ...
 
-export interface FeaturedStory {
-  id: number;
-  title: string;
-  excerpt: string;
-  memberId: number;
-  slug: string;
-  content: string; // Full story text
-  image: string; // URL to the story image
-  author: string; // Author of the story
-  date: string; // Publication date
-}
-
-export interface FamilyEvent {
-  id: number;
-  title: string;
-  date: string;
-  description: string;
-  memberIds: number[];
-}
-
-export const familyLocations: FamilyLocation[] = [
+export const familyMembers: FamilyMember[] = [
+  // Generation 1 (Grandparents)
   {
     id: 1,
-    name: "Kathmandu, Nepal",
-    lat: 27.7172,
-    lng: 85.324,
-    members: [1, 2, 3, 4, 7, 8],
+    name: "Ram Bahadur Khanal",
+    role: "Founding Patriarch",
+    parentIds: [],
+    spouseId: 2,
+    birthDate: "1940-01-15",
+    deathDate: "2020-12-10",
+    image: "/images/oldman3.png",
+    bio: "Founding patriarch of the Khanal family, dedicated farmer and community leader.",
+    slug: "ram-bahadur-khanal",
+    generation: 1,
+    fullBio: "Founding patriarch of the Khanal family, dedicated farmer and community leader. He worked tirelessly to build a strong foundation for future generations.",
+    birthdate: "1940-01-15",
+    relationship: "Founding Patriarch",
+    email: "ramkhanal121@gmail.com",
+    phone: "9878188000",
+    address: "Mangalbare, Ilam, Nepal",
+    education: ["Traditional Education"],
+    career: ["Farmer", "Community Leader"],
+    hobbies: ["Farming", "Community Service"],
+    achievements: ["Established Family Legacy", "Community Leadership"],
+    favoriteQuote: "Education is the key to success",
+    personalityTraits: ["Dedicated", "Hardworking", "Visionary"],
+    skills: ["Farming", "Leadership"],
+    languages: ["Nepali", "Hindi"],
+    socialLinks: {
+      facebook: "ram.khanal.family",
+      instagram: "@ram.khanal",
+      twitter: "@ramkhanal"
+    }
   },
   {
     id: 2,
-    name: "London, UK",
-    lat: 51.5074,
-    lng: -0.1278,
-    members: [5, 6, 9, 10],
+    name: "Sita Devi Khanal",
+    role: "Matriarch",
+    parentIds: [],
+    spouseId: 1,
+    birthDate: "1945-03-20",
+    deathDate: null,
+    image: "/images/oldwoman3.webp",
+    bio: "Beloved matriarch, devoted mother and grandmother who kept the family united.",
+    slug: "sita-devi-khanal",
+    generation: 1,
+    fullBio: "Sita Devi Khanal has been the heart and soul of the Khanal family for over five decades. Her wisdom, compassion, and unwavering dedication to family values have shaped generations. She is known for her exceptional cooking skills and her ability to bring the family together during festivals and celebrations.",
+    birthdate: "1945-03-20",
+    relationship: "Matriarch",
+    email: "sita.khanal@family.com",
+    phone: "+977-9841234567",
+    address: "Kathmandu, Nepal",
+    education: ["Traditional Education", "Home Economics"],
+    career: ["Homemaker", "Community Leader"],
+    hobbies: ["Cooking", "Gardening", "Storytelling"],
+    achievements: ["Family Unity Award", "Community Service Recognition"],
+    favoriteQuote: "Family is not an important thing, it's everything",
+    personalityTraits: ["Compassionate", "Wise", "Nurturing"],
+    skills: ["Cooking", "Conflict Resolution", "Traditional Medicine"],
+    languages: ["Nepali", "Hindi", "Newari"],
+    socialLinks: {
+      facebook: "sita.khanal.family",
+      instagram: "@sita.khanal",
+      twitter: "@sitakhanal"
+    }
   },
+  // Generation 2 (Parents)
   {
     id: 3,
-    name: "Sydney, Australia",
-    lat: -33.8688,
-    lng: 151.2093,
-    members: [7],
+    name: "Prakash Khanal",
+    role: "Businessman",
+    parentIds: [1, 2],
+    spouseId: 4,
+    birthDate: "1970-05-12",
+    deathDate: null,
+    image: "/images/man5.webp",
+    bio: "Eldest son, successful businessman and family coordinator.",
+    slug: "prakash-khanal",
+    generation: 2,
+    fullBio: "Prakash Khanal has built a successful business empire while maintaining strong family values. He is known for his innovative business strategies and his commitment to family traditions. As the eldest son, he takes great pride in coordinating family events and maintaining family unity.",
+    birthdate: "1970-05-12",
+    relationship: "Businessman",
+    email: "prakash.khanal@business.com",
+    phone: "+977-9841234568",
+    address: "Kathmandu, Nepal",
+    education: ["MBA", "Business Administration"],
+    career: ["Entrepreneur", "Business Consultant"],
+    hobbies: ["Golf", "Reading", "Family Time"],
+    achievements: ["Business Excellence Award", "Community Development"],
+    favoriteQuote: "Success is not final, failure is not fatal",
+    personalityTraits: ["Ambitious", "Organized", "Family-Oriented"],
+    skills: ["Business Management", "Leadership", "Strategic Planning"],
+    languages: ["Nepali", "English", "Hindi"],
+    socialLinks: {
+      facebook: "prakash.khanal.business",
+      instagram: "@prakash.khanal",
+      twitter: "@prakashkhanal",
+      linkedin: "prakash-khanal"
+    }
+  },
+  {
+    id: 4,
+    name: "Kamala Khanal",
+    role: "Teacher",
+    parentIds: [],
+    spouseId: 3,
+    birthDate: "1975-08-18",
+    deathDate: null,
+    image: "/images/oldwoman4.webp",
+    bio: "Dedicated teacher and loving mother of three children.",
+    slug: "kamala-khanal",
+    generation: 2,
+    fullBio: "Kamala Khanal has dedicated her life to education and family. As a respected teacher, she has influenced countless young minds while raising her own children with strong values. Her passion for learning and teaching has made her a role model in both her professional and personal life.",
+    birthdate: "1975-08-18",
+    relationship: "Teacher",
+    email: "kamala.khanal@school.edu",
+    phone: "+977-9841234569",
+    address: "Kathmandu, Nepal",
+    education: ["M.Ed", "Education Leadership"],
+    career: ["School Teacher", "Education Consultant"],
+    hobbies: ["Reading", "Painting", "Gardening"],
+    achievements: ["Teacher of the Year", "Education Innovation Award"],
+    favoriteQuote: "Education is the most powerful weapon",
+    personalityTraits: ["Patient", "Creative", "Dedicated"],
+    skills: ["Teaching", "Curriculum Development", "Child Psychology"],
+    languages: ["Nepali", "English", "Sanskrit"],
+    socialLinks: {
+      facebook: "kamala.khanal.education",
+      instagram: "@kamala.khanal",
+      twitter: "@kamalakhanal",
+      linkedin: "kamala-khanal"
+    }
+  },
+  {
+    id: 5,
+    name: "Suresh Khanal",
+    role: "Engineer",
+    parentIds: [1, 2],
+    spouseId: 6,
+    birthDate: "1972-11-25",
+    deathDate: null,
+    image: "/images/oldman5.webp",
+    bio: "Engineer working abroad, maintains strong family connections.",
+    slug: "suresh-khanal",
+    generation: 2,
+    fullBio: "Suresh Khanal is a successful engineer who has worked on major international projects. Despite living abroad, he maintains strong connections with his family and regularly visits Nepal. His technical expertise and global perspective have been valuable assets to both his career and family.",
+    birthdate: "1972-11-25",
+    relationship: "Engineer",
+    email: "suresh.khanal@tech.com",
+    phone: "+1-234-567-8901",
+    address: "New York, USA",
+    education: ["MSc in Engineering", "Project Management"],
+    career: ["Senior Engineer", "Project Manager"],
+    hobbies: ["Photography", "Travel", "Technology"],
+    achievements: ["Engineering Excellence Award", "Global Project Success"],
+    favoriteQuote: "Innovation distinguishes between a leader and a follower",
+    personalityTraits: ["Analytical", "Adventurous", "Family-Focused"],
+    skills: ["Engineering", "Project Management", "Technical Leadership"],
+    languages: ["Nepali", "English", "Japanese"],
+    socialLinks: {
+      facebook: "suresh.khanal.engineer",
+      instagram: "@suresh.khanal",
+      twitter: "@sureshkhanal",
+      linkedin: "suresh-khanal"
+    }
+  },
+  {
+    id: 6,
+    name: "Radha Khanal",
+    role: "Healthcare Professional",
+    parentIds: [],
+    spouseId: 5,
+    birthDate: "1976-02-14",
+    deathDate: null,
+    image: "/images/oldwoman5.webp",
+    bio: "Healthcare professional and community volunteer.",
+    slug: "radha-khanal",
+    generation: 2,
+    fullBio: "Radha Khanal is a dedicated healthcare professional who combines medical expertise with compassionate care. Her work in community health has made a significant impact on many lives. She balances her professional commitments with her role as a mother and active family member.",
+    birthdate: "1976-02-14",
+    relationship: "Healthcare Professional",
+    email: "radha.khanal@health.com",
+    phone: "+1-234-567-8902",
+    address: "New York, USA",
+    education: ["MD", "Public Health"],
+    career: ["Medical Doctor", "Public Health Specialist"],
+    hobbies: ["Yoga", "Meditation", "Community Service"],
+    achievements: ["Healthcare Excellence Award", "Community Service Recognition"],
+    favoriteQuote: "Health is a state of complete harmony of the body, mind and spirit",
+    personalityTraits: ["Compassionate", "Professional", "Balanced"],
+    skills: ["Medical Practice", "Public Health", "Patient Care"],
+    languages: ["Nepali", "English", "Medical Terminology"],
+    socialLinks: {
+      facebook: "radha.khanal.health",
+      instagram: "@radha.khanal",
+      twitter: "@radhakhanal",
+      linkedin: "radha-khanal"
+    }
+  },
+  // Generation 3 (Children)
+  {
+    id: 7,
+    name: "Arjun Khanal",
+    role: "University Student",
+    parentIds: [3, 4],
+    spouseId: null,
+    birthDate: "2000-07-10",
+    deathDate: null,
+    image: "/images/space.png",
+    bio: "University student studying computer science, passionate about technology.",
+    slug: "arjun-khanal",
+    generation: 3,
+    fullBio: "Arjun Khanal is a bright young computer science student with a passion for technology and innovation. He combines his technical skills with creative thinking to develop solutions for real-world problems. His enthusiasm for learning and family values makes him a promising future leader.",
+    birthdate: "2000-07-10",
+    relationship: "University Student",
+    email: "arjun.khanal@student.edu",
+    phone: "+977-9841234570",
+    address: "Kathmandu, Nepal",
+    education: ["BSc Computer Science", "Web Development"],
+    career: ["Student", "Freelance Developer"],
+    hobbies: ["Coding", "Gaming", "Basketball"],
+    achievements: ["Hackathon Winner", "Academic Excellence"],
+    favoriteQuote: "The best way to predict the future is to create it",
+    personalityTraits: ["Innovative", "Determined", "Tech-Savvy"],
+    skills: ["Programming", "Web Development", "Problem Solving"],
+    languages: ["Nepali", "English", "Programming Languages"],
+    socialLinks: {
+      facebook: "arjun.khanal.tech",
+      instagram: "@arjun.khanal",
+      twitter: "@arjunkhanal",
+      linkedin: "arjun-khanal"
+    }
+  },
+  {
+    id: 8,
+    name: "Priya Khanal",
+    role: "High School Student",
+    parentIds: [3, 4],
+    spouseId: null,
+    birthDate: "2002-12-05",
+    deathDate: null,
+    image: "/images/Hemjakot.png",
+    bio: "High school student with interests in arts and literature.",
+    slug: "priya-khanal",
+    generation: 3,
+    fullBio: "Priya Khanal is a talented high school student with a passion for arts and literature. Her creative expression through various art forms has won her recognition in school competitions. She balances her artistic pursuits with academic excellence and family responsibilities.",
+    birthdate: "2002-12-05",
+    relationship: "High School Student",
+    email: "priya.khanal@student.edu",
+    phone: "+977-9841234571",
+    address: "Kathmandu, Nepal",
+    education: ["High School", "Art Classes"],
+    career: ["Student", "Young Artist"],
+    hobbies: ["Painting", "Writing", "Dancing"],
+    achievements: ["Art Competition Winner", "Literary Award"],
+    favoriteQuote: "Art is not what you see, but what you make others see",
+    personalityTraits: ["Creative", "Expressive", "Dedicated"],
+    skills: ["Painting", "Creative Writing", "Dance"],
+    languages: ["Nepali", "English", "French"],
+    socialLinks: {
+      facebook: "priya.khanal.arts",
+      instagram: "@priya.khanal",
+      twitter: "@priyakhanal"
+    }
+  },
+  {
+    id: 9,
+    name: "Anita Khanal",
+    role: "Medical Student",
+    parentIds: [5, 6],
+    spouseId: null,
+    birthDate: "2001-09-22",
+    deathDate: null,
+    image: "/images/woman7.webp",
+    bio: "Medical student following in her mother's footsteps in healthcare.",
+    slug: "anita-khanal",
+    generation: 3,
+    fullBio: "Anita Khanal is a dedicated medical student following her mother's footsteps in healthcare. Her commitment to medical studies and patient care shows her passion for the field. She combines her medical knowledge with compassion, making her a promising healthcare professional.",
+    birthdate: "2001-09-22",
+    relationship: "Medical Student",
+    email: "anita.khanal@med.edu",
+    phone: "+1-234-567-8903",
+    address: "New York, USA",
+    education: ["MD Program", "Medical Research"],
+    career: ["Medical Student", "Research Assistant"],
+    hobbies: ["Medical Research", "Volunteering", "Reading"],
+    achievements: ["Research Grant", "Academic Excellence"],
+    favoriteQuote: "The art of medicine consists of amusing the patient while nature cures the disease",
+    personalityTraits: ["Compassionate", "Dedicated", "Analytical"],
+    skills: ["Medical Knowledge", "Research", "Patient Care"],
+    languages: ["Nepali", "English", "Medical Terminology"],
+    socialLinks: {
+      facebook: "anita.khanal.medical",
+      instagram: "@anita.khanal",
+      twitter: "@anitakhanal",
+      linkedin: "anita-khanal"
+    }
+  },
+  {
+    id: 10,
+    name: "Bikash Khanal",
+    role: "Young Entrepreneur",
+    parentIds: [5, 6],
+    spouseId: null,
+    birthDate: "2003-04-16",
+    deathDate: null,
+    image: "/images/man4.webp",
+    bio: "Young entrepreneur with innovative ideas for sustainable farming.",
+    slug: "bikash-khanal",
+    generation: 3,
+    fullBio: "Bikash Khanal is a young entrepreneur with innovative ideas for sustainable farming. His passion for agriculture and technology has led him to develop modern solutions for traditional farming practices. His vision combines family legacy with modern innovation.",
+    birthdate: "2003-04-16",
+    relationship: "Young Entrepreneur",
+    email: "bikash.khanal@agri.com",
+    phone: "+1-234-567-8904",
+    address: "New York, USA",
+    education: ["Agricultural Science", "Business Management"],
+    career: ["Agri-Tech Entrepreneur", "Farm Manager"],
+    hobbies: ["Farming", "Technology", "Nature Photography"],
+    achievements: ["Innovation Award", "Young Entrepreneur Recognition"],
+    favoriteQuote: "The best time to plant a tree was 20 years ago, the second best time is now",
+    personalityTraits: ["Innovative", "Determined", "Nature-Loving"],
+    skills: ["Sustainable Farming", "Business Management", "Technology"],
+    languages: ["Nepali", "English", "Spanish"],
+    socialLinks: {
+      facebook: "bikash.khanal.agri",
+      instagram: "@bikash.khanal",
+      twitter: "@bikashkhanal",
+      linkedin: "bikash-khanal"
+    }
   },
 ];
 
-export const familyPhotos: FamilyPhoto[] = [
+export const familyEvents = [
+  {
+    id: 1,
+    title: "Family Reunion",
+    date: "2024-04-15",
+    description: "A joyful gathering in Kathmandu",
+    memberIds: [1, 2, 3, 4, 7, 8],
+  },
+  {
+    id: 2,
+    title: "Golden Jubilee",
+    date: "2023-05-10",
+    description: "Celebrating 50 years of family legacy",
+    memberIds: [1, 2, 5, 6, 9, 10],
+  },
+];
+
+export const familyPhotos = [
   {
     id: 1,
     event: "Family Reunion 2024",
-    image: "/images/reunion.jpg",
+    image: "/images/family1.png",
     date: "2024-04-15",
     memberIds: [1, 2, 3, 4, 7, 8],
   },
   {
     id: 2,
     event: "Arjun's Graduation",
-    image: "/images/graduation.jpg",
+    image: "/images/Family2.png",
     date: "2024-05-20",
     memberIds: [7],
   },
 ];
 
-export const familyRecipes: FamilyRecipe[] = [
+export const familyRecipes = [
   {
     id: 1,
     title: "Grandma's Dal Bhat",
@@ -128,337 +468,12 @@ export const featuredStories: FeaturedStory[] = [
   },
 ];
 
-export const familyEvents: FamilyEvent[] = [
-  {
-    id: 1,
-    title: "Ram and Sita's Marriage",
-    date: "1945-06-10",
-    description: "A union in rural Nepal",
-    memberIds: [1, 2],
-  },
-  {
-    id: 2,
-    title: "Family Reunion",
-    date: "2024-04-15",
-    description: "A joyful gathering in Kathmandu",
-    memberIds: [1, 2, 3, 4, 7, 8],
-  },
-];
-
-export const familyMembers: FamilyMember[] = [
-  // Generation 1 (Grandparents)
-  {
-    id: 1,
-    name: "Ram Bahadur Khanal",
-    parentIds: [],
-    spouseId: 2,
-    birthDate: "1940-01-15",
-    deathDate: "2020-12-10",
-    image: "/images/panda.png",
-    bio: "Founding patriarch of the Khanal family, dedicated farmer and community leader.",
-    slug: "ram-bahadur-khanal",
-    generation: 1,
-  },
-  {
-    id: 2,
-    name: "Sita Devi Khanal",
-    parentIds: [],
-    spouseId: 1,
-    birthDate: "1945-03-20",
-    deathDate: null,
-    image: "/images/istock.png",
-    bio: "Beloved matriarch, devoted mother and grandmother who kept the family united.",
-    slug: "sita-devi-khanal",
-    generation: 1,
-  },
-  // Generation 2 (Parents)
-  {
-    id: 3,
-    name: "Prakash Khanal",
-    parentIds: [1, 2],
-    spouseId: 4,
-    birthDate: "1970-05-12",
-    deathDate: null,
-    image: "/images/prakash.jpg",
-    bio: "Eldest son, successful businessman and family coordinator.",
-    slug: "prakash-khanal",
-    generation: 2,
-  },
-  {
-    id: 4,
-    name: "Kamala Khanal",
-    parentIds: [],
-    spouseId: 3,
-    birthDate: "1975-08-18",
-    deathDate: null,
-    image: "/images/kamala.jpg",
-    bio: "Dedicated teacher and loving mother of three children.",
-    slug: "kamala-khanal",
-    generation: 2,
-  },
-  {
-    id: 5,
-    name: "Suresh Khanal",
-    parentIds: [1, 2],
-    spouseId: 6,
-    birthDate: "1972-11-25",
-    deathDate: null,
-    image: "/images/suresh.jpg",
-    bio: "Engineer working abroad, maintains strong family connections.",
-    slug: "suresh-khanal",
-    generation: 2,
-  },
-  {
-    id: 6,
-    name: "Radha Khanal",
-    parentIds: [],
-    spouseId: 5,
-    birthDate: "1976-02-14",
-    deathDate: null,
-    image: "/images/radha.jpg",
-    bio: "Healthcare professional and community volunteer.",
-    slug: "radha-khanal",
-    generation: 2,
-  },
-  // Generation 3 (Children)
-  {
-    id: 7,
-    name: "Arjun Khanal",
-    parentIds: [3, 4],
-    spouseId: null,
-    birthDate: "2000-07-10",
-    deathDate: null,
-    image: "/images/arjun.jpg",
-    bio: "University student studying computer science, passionate about technology.",
-    slug: "arjun-khanal",
-    generation: 3,
-  },
-  {
-    id: 8,
-    name: "Priya Khanal",
-    parentIds: [3, 4],
-    spouseId: null,
-    birthDate: "2002-12-05",
-    deathDate: null,
-    image: "/images/priya.jpg",
-    bio: "High school student with interests in arts and literature.",
-    slug: "priya-khanal",
-    generation: 3,
-  },
-  {
-    id: 9,
-    name: "Anita Khanal",
-    parentIds: [5, 6],
-    spouseId: null,
-    birthDate: "2001-09-22",
-    deathDate: null,
-    image: "/images/anita.jpg",
-    bio: "Medical student following in her mother's footsteps in healthcare.",
-    slug: "anita-khanal",
-    generation: 3,
-  },
-  {
-    id: 10,
-    name: "Bikash Khanal",
-    parentIds: [5, 6],
-    spouseId: null,
-    birthDate: "2003-04-16",
-    deathDate: null,
-    image: "/images/bikash.jpg",
-    bio: "Young entrepreneur with innovative ideas for sustainable farming.",
-    slug: "bikash-khanal",
-    generation: 3,
-  },
-];
-
-
+// ... other data ...
 
 export const members: Member[] = [
-  {
-    id: 1,
-    slug: "krishna-khanal",
-    name: "Krishna Khanal",
-    role: "Family Head",
-    bio: "Dedicated family patriarch with 40+ years of leadership experience",
-    fullBio:
-      "Krishna Khanal is the cornerstone of our family, a man whose wisdom and dedication have shaped generations. With over four decades of professional experience in agriculture and community leadership, he has been instrumental in building not just our family legacy but also contributing significantly to our local community. His journey from a small village to becoming a respected figure in our region is a testament to his perseverance and values.",
-    photo: "/images/sessler.png",
-    birthdate: "April 20, 1955",
-    relationship: "Father",
-    email: "krishna.khanal@email.com",
-    phone: "+977-98XXXXXXXX",
-    address: "Kathmandu, Nepal",
-    education: [
-      "Bachelor of Agriculture - Tribhuvan University (1978)",
-      "Certificate in Community Leadership - Local Institute (1985)",
-    ],
-    career: [
-      "Senior Agricultural Officer - Ministry of Agriculture (1979-2010)",
-      "Community Development Coordinator (2010-2015)",
-      "Family Business Consultant (2015-Present)",
-    ],
-    hobbies: ["Gardening", "Reading Historical Books", "Chess", "Community Service"],
-    achievements: [
-      "Outstanding Service Award - Ministry of Agriculture (2005)",
-      "Community Leader of the Year (2012)",
-      "Lifetime Achievement in Agriculture (2018)",
-    ],
-    favoriteQuote: "The best time to plant a tree was 20 years ago. The second best time is now.",
-    personalityTraits: ["Wise", "Patient", "Generous", "Traditional", "Caring"],
-    skills: ["Leadership", "Agriculture", "Problem Solving", "Mentoring"],
-    languages: ["Nepali", "Hindi", "English"],
-  },
-  {
-    id: 2,
-    slug: "radha-khanal",
-    name: "Radha Khanal",
-    role: "Matriarch",
-    bio: "Heart of the family with exceptional culinary skills",
-    fullBio:
-      "Radha Khanal is the beating heart of our family, whose love and care have nurtured every member with unwavering devotion. Known throughout our community for her exceptional culinary talents and warm hospitality, she has been the anchor that keeps our family traditions alive. Her kitchen is not just a place where meals are prepared, but where stories are shared, lessons are taught, and bonds are strengthened.",
-    photo: "/images/wild.png",
-    birthdate: "June 15, 1960",
-    relationship: "Mother",
-    email: "radha.khanal@email.com",
-    phone: "+977-98XXXXXXXX",
-    address: "Kathmandu, Nepal",
-    education: [
-      "High School Certificate - Local School (1978)",
-      "Culinary Arts Certificate - Women's Development Center (1985)",
-      "Healthcare Training - Red Cross (1990)",
-    ],
-    career: [
-      "Full-time Homemaker and Family Manager (1980-Present)",
-      "Community Health Volunteer (1990-2010)",
-      "Cooking Instructor - Local Women's Group (2000-2015)",
-    ],
-    hobbies: ["Cooking", "Knitting", "Gardening", "Temple Visits", "Storytelling"],
-    achievements: [
-      "Best Traditional Cook - Community Festival (Multiple Years)",
-      "Volunteer Recognition - Red Cross (2005)",
-      "Women's Leadership Award - Local NGO (2010)",
-    ],
-    favoriteQuote: "A home cooked meal is love made visible.",
-    personalityTraits: ["Nurturing", "Creative", "Spiritual", "Organized", "Compassionate"],
-    skills: ["Cooking", "Household Management", "Child Care", "Traditional Crafts"],
-    languages: ["Nepali", "Hindi", "Basic English"],
-  },
-  {
-    id: 3,
-    slug: "ramesh-khanal",
-    name: "Ramesh Khanal",
-    role: "Software Engineer",
-    bio: "Tech enthusiast building the future with code",
-    fullBio:
-      "Ramesh Khanal represents the bridge between our family's traditional values and the modern digital world. As a passionate software engineer, he has dedicated his career to creating innovative solutions that make technology accessible and meaningful. His journey in tech began early, and he has consistently pushed the boundaries of what's possible while staying grounded in the values instilled by our family.",
-    photo: "/images/unsplash.png",
-    birthdate: "March 12, 1990",
-    relationship: "Son",
-    email: "ramesh.khanal@email.com",
-    phone: "+977-98XXXXXXXX",
-    address: "Kathmandu, Nepal",
-    education: [
-      "Bachelor of Computer Science - Kathmandu University (2012)",
-      "Master of Software Engineering - Tribhuvan University (2015)",
-      "Various Online Certifications - Coursera, edX (2016-Present)",
-    ],
-    career: [
-      "Junior Developer - Local Tech Company (2012-2014)",
-      "Senior Software Engineer - International Firm (2015-2019)",
-      "Lead Developer - Current Company (2019-Present)",
-      "Freelance Consultant (2020-Present)",
-    ],
-    hobbies: ["Programming Personal Projects", "Gaming", "Photography", "Hiking", "Teaching Coding"],
-    achievements: [
-      "Best Innovative Solution - Tech Conference (2018)",
-      "Open Source Contributor - GitHub (2016-Present)",
-      "Mentor of the Year - Coding Bootcamp (2020)",
-    ],
-    favoriteQuote: "Code is poetry written in logic.",
-    personalityTraits: ["Innovative", "Analytical", "Patient", "Detail-oriented", "Collaborative"],
-    skills: ["Full-Stack Development", "System Architecture", "Project Management", "Mentoring"],
-    languages: ["Nepali", "English", "Hindi", "Japanese (Basic)"],
-    socialLinks: {
-      linkedin: "https://linkedin.com/in/rameshkhanal",
-      instagram: "https://instagram.com/ramesh_codes",
-    },
-  },
-  {
-    id: 4,
-    slug: "sita-khanal",
-    name: "Sita Khanal",
-    role: "Medical Student",
-    bio: "Aspiring doctor passionate about community health",
-    fullBio:
-      "Sita Khanal embodies the spirit of service and healing that runs deep in our family. As a dedicated medical student, she has shown exceptional commitment to understanding not just the science of medicine, but also the art of caring for people. Her passion for community health stems from witnessing the impact of healthcare accessibility in rural areas, driving her to pursue medicine with a focus on serving underserved communities.",
-    photo: "/images/willian.png",
-    birthdate: "August 5, 1995",
-    relationship: "Daughter",
-    email: "sita.khanal@email.com",
-    phone: "+977-98XXXXXXXX",
-    address: "Kathmandu, Nepal",
-    education: [
-      "Bachelor of Medicine, Bachelor of Surgery (MBBS) - Currently Pursuing",
-      "Pre-Medical Certificate - Science College (2013)",
-      "High School - Local School (2011)",
-    ],
-    career: [
-      "Medical Student - Current (2015-Present)",
-      "Health Volunteer - Local Clinic (2013-2015)",
-      "Research Assistant - Medical College (2018-Present)",
-    ],
-    hobbies: ["Medical Research", "Volunteer Work", "Reading Medical Journals", "Yoga", "Community Outreach"],
-    achievements: [
-      "Dean's List - Medical College (Multiple Semesters)",
-      "Best Research Paper - Student Conference (2020)",
-      "Community Service Award - Medical Association (2021)",
-    ],
-    favoriteQuote: "Healing is a matter of time, but it is sometimes also a matter of opportunity.",
-    personalityTraits: ["Empathetic", "Dedicated", "Studious", "Caring", "Determined"],
-    skills: ["Medical Knowledge", "Patient Care", "Research", "Communication", "Emergency Response"],
-    languages: ["Nepali", "English", "Hindi", "Sanskrit (Basic)"],
-  },
-  {
-    id: 5,
-    slug: "hari-khanal",
-    name: "Hari Khanal",
-    role: "Business Student",
-    bio: "Entrepreneurial spirit learning the ropes of commerce",
-    fullBio:
-      "Hari Khanal is the entrepreneurial force of our new generation, combining traditional business wisdom with modern innovative approaches. As the youngest member pursuing higher education, he brings fresh perspectives and boundless energy to everything he does. His vision extends beyond personal success to creating opportunities that can benefit our entire community and carry forward our family's legacy of contribution to society.",
-    photo: "/images/marek.png",
-    birthdate: "November 30, 2000",
-    relationship: "Son",
-    email: "hari.khanal@email.com",
-    phone: "+977-98XXXXXXXX",
-    address: "Kathmandu, Nepal",
-    education: [
-      "Bachelor of Business Administration - Currently Pursuing (2019-Present)",
-      "High School - Local School (2018)",
-      "Various Business Workshops and Seminars (2019-Present)",
-    ],
-    career: [
-      "Business Student - Current (2019-Present)",
-      "Intern - Local Business (Summer 2021)",
-      "Freelance Social Media Manager (2020-Present)",
-      "Co-founder - Student Startup Initiative (2021-Present)",
-    ],
-    hobbies: ["Entrepreneurship", "Digital Marketing", "Sports", "Travel", "Networking Events"],
-    achievements: [
-      "Best Business Plan - University Competition (2021)",
-      "Young Entrepreneur Award - Local Chamber (2022)",
-      "Academic Excellence - Dean's List (2020, 2021)",
-    ],
-    favoriteQuote: "Success is not just about what you accomplish in your life, it's about what you inspire others to do.",
-    personalityTraits: ["Ambitious", "Creative", "Social", "Optimistic", "Adaptable"],
-    skills: ["Business Strategy", "Digital Marketing", "Leadership", "Communication", "Innovation"],
-    languages: ["Nepali", "English", "Hindi", "Korean (Learning)"],
-    socialLinks: {
-      instagram: "https://instagram.com/hari_entrepreneur",
-      linkedin: "https://linkedin.com/in/harikhanal",
-    },
-  },
+  // ... member data ...
 ];
+
 // Helper function to build family tree structure
 export function buildFamilyTree(members: FamilyMember[]) {
   // Add children arrays to each member
@@ -468,3 +483,4 @@ export function buildFamilyTree(members: FamilyMember[]) {
   }));
   return membersWithChildren;
 }
+

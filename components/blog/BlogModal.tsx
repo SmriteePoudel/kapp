@@ -51,12 +51,9 @@ interface BlogModalProps {
 
 export default function BlogModal({
   isOpen,
-  onClose,
-  selectedPost,
-  onLike,
-  likedPosts,
-  onBookmark, // Destructure new props
-  bookmarkedPosts, // Destructure new props
+   onClose, selectedPost, 
+   onLike, likedPosts, 
+   onBookmark, bookmarkedPosts,
 }: BlogModalProps) {
   // Scroll lock
   useEffect(() => {

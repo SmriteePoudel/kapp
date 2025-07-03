@@ -64,7 +64,7 @@ export default function BlogCard({
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           placeholder="blur"
-          blurDataURL="/images/group.jpeg"
+          blurDataURL="/images/space.png"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>

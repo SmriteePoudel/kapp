@@ -5,7 +5,7 @@ export interface Member {
   role: string;
   bio: string;
   fullBio: string;
-  photo: string;
+  image: string;
   birthdate: string;
   relationship: string;
   email: string;
@@ -20,7 +20,9 @@ export interface Member {
   skills: string[];
   languages: string[];
   socialLinks?: {
-    linkedin?: string;
+    facebook?: string;
     instagram?: string;
+    twitter?: string;
+    linkedin?: string;
   };
 } 
