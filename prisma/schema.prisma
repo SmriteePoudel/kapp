@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BlogPost {
+  id      Int      @id @default(autoincrement())
+  title   String
+  excerpt String
+  content String
+  date    DateTime @default(now())
+  tags    String[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  roles     Role[]
+}
+
+model UserRole {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  permissions Permission[] @relation("RolePermissions")
+}
+
+model Permission {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String
+  roles       UserRole[] @relation("RolePermissions")
+}
+
+enum Role {
+  ADMIN
+  USER
+}

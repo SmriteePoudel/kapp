@@ -20,7 +20,7 @@ export default function SignUpPage() {
             className="mx-auto max-w-md"
           >
             <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 md:p-10 border border-slate-200 dark:border-slate-700">
-              {/* Decorative elements */}
+              
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
                 <div className="absolute -top-20 -left-20 w-64 h-64 bg-rose-200/30 dark:bg-rose-900/10 rounded-full blur-3xl" />
                 <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-amber-200/30 dark:bg-amber-900/10 rounded-full blur-3xl" />

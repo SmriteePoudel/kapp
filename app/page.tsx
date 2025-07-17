@@ -1,3 +1,4 @@
+
 import Anniversary from "@/components/Anniversary";
 import Birthday from "@/components/Birthday";
 
@@ -8,7 +9,10 @@ import Hero from "@/components/Hero";
 import MovingText from "@/components/MovingText";
 import IntroSection from "@/components/IntroSection";
 
+
 export default function Home() {
+  
+  
   return (
     <>
       <Header />
