@@ -8,10 +8,6 @@ type Permission = {
   description?: string;
 };
 
-type PermissionsResponse = {
-  permissions: unknown; // initially unknown
-};
-
 export default function AddRolePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -24,20 +20,26 @@ export default function AddRolePage() {
   useEffect(() => {
     fetch('/api/admin/permissions')
       .then(res => res.json())
-      .then((data: PermissionsResponse) => {
-        if (Array.isArray(data.permissions)) {
-          const validated = data.permissions.filter(
-            (p): p is Permission =>
-              typeof p.id === "number" && typeof p.name === "string"
-          );
-          // ✅ Tell TypeScript we now know this is Permission[]
-          setPermissions(validated as Permission[]);
+      .then((data) => {
+        if (
+          Array.isArray(data.permissions) &&
+          data.permissions.every(
+            (p) =>
+              typeof p === "object" &&
+              p !== null &&
+              "id" in p &&
+              "name" in p
+          )
+        ) {
+          setPermissions(data.permissions as Permission[]);
         } else {
-          console.error("Invalid permissions response:", data);
+          console.error("Invalid API response:", data);
+          setPermissions([]); // fallback to empty
         }
       })
       .catch((err) => {
         console.error("Failed to fetch permissions:", err);
+        setPermissions([]);
       });
   }, []);
 
@@ -104,7 +106,7 @@ export default function AddRolePage() {
           <div className="text-left">
             <div className="font-semibold mb-2">Permissions:</div>
             <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
-              {permissions.map((perm: Permission) => (
+              {(permissions as Permission[]).map((perm) => (
                 <label key={perm.id} className="flex items-center gap-2">
                   <input
                     type="checkbox"
