@@ -27,9 +27,10 @@ export async function POST(request: Request) {
           select: { id: true },
         });
         connectPermissions = validPermissions.map((p: { id: number }) => ({ id: p.id }));
-      } catch (permError: any) {
-        console.error('Error fetching permissions for role:', JSON.stringify(permError, null, 2));
-        return NextResponse.json({ error: permError.message || 'Failed to fetch permissions for role.' }, { status: 500 });
+      } catch (permError: unknown) {
+        const err = permError as Error;
+        console.error('Error fetching permissions for role:', JSON.stringify(err, null, 2));
+        return NextResponse.json({ error: err.message || 'Failed to fetch permissions for role.' }, { status: 500 });
       }
     }
 
@@ -53,13 +54,15 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ role: updatedRole, message: 'Role added or updated successfully!' }, { status: 201 });
-    } catch (roleError: any) {
-      console.error('Error upserting user role:', JSON.stringify(roleError, null, 2));
-      return NextResponse.json({ error: roleError.message || 'Failed to add or update role.' }, { status: 500 });
+    } catch (roleError: unknown) {
+      const err = roleError as Error;
+      console.error('Error upserting user role:', JSON.stringify(err, null, 2));
+      return NextResponse.json({ error: err.message || 'Failed to add or update role.' }, { status: 500 });
     }
-  } catch (error: any) {
-    console.error('API /api/admin/roles error:', JSON.stringify(error, null, 2));
-    return NextResponse.json({ error: error.message || 'Failed to add role.' }, { status: 500 });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('API /api/admin/roles error:', JSON.stringify(err, null, 2));
+    return NextResponse.json({ error: err.message || 'Failed to add role.' }, { status: 500 });
   }
 }
 

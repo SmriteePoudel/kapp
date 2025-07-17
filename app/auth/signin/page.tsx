@@ -1,12 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Facebook } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import Link from "next/link";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
