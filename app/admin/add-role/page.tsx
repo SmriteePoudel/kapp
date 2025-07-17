@@ -8,6 +8,10 @@ type Permission = {
   description?: string;
 };
 
+type ApiResponse = {
+  permissions: Permission[];
+};
+
 export default function AddRolePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -18,29 +22,27 @@ export default function AddRolePage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/admin/permissions')
-      .then(res => res.json())
-      .then((data) => {
-        if (
-          Array.isArray(data.permissions) &&
-          data.permissions.every(
-            (p: any) =>
-              typeof p === "object" &&
-              p !== null &&
-              "id" in p &&
-              "name" in p
-          )
-        ) {
-          setPermissions(data.permissions as Permission[]);
-        } else {
-          console.error("Invalid API response:", data);
-          setPermissions([]); // fallback to empty
+    const fetchPermissions = async () => {
+      try {
+        const res = await fetch('/api/admin/permissions');
+        const data: ApiResponse = await res.json();
+        
+        if (Array.isArray(data.permissions)) {
+          // Ensure each permission has the correct structure
+          const validPermissions: Permission[] = data.permissions.map(perm => ({
+            id: Number(perm.id),
+            name: String(perm.name),
+            description: perm.description ? String(perm.description) : undefined
+          }));
+          setPermissions(validPermissions);
         }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch permissions:", err);
+      } catch (error) {
+        console.error('Failed to fetch permissions:', error);
         setPermissions([]);
-      });
+      }
+    };
+
+    fetchPermissions();
   }, []);
 
   function handlePermissionChange(id: number) {
@@ -72,8 +74,7 @@ export default function AddRolePage() {
       } else {
         setMessage(data.error || "Failed to add role");
       }
-    } catch (error) {
-      console.error("Submit error:", error);
+    } catch {
       setMessage("Something went wrong.");
     } finally {
       setLoading(false);
@@ -89,19 +90,19 @@ export default function AddRolePage() {
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-10 w-full max-w-md text-center">
         <h1 className="text-2xl font-bold mb-6 text-amber-600 dark:text-amber-400">Add New Role</h1>
         <form className="flex flex-col gap-4" onSubmit={e => handleSubmit(e, false)}>
-          <input
-            className="p-2 rounded border"
-            placeholder="Role Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
+          <input 
+            className="p-2 rounded border" 
+            placeholder="Role Name" 
+            value={name} 
+            onChange={e => setName(e.target.value)} 
+            required 
           />
-          <input
-            className="p-2 rounded border"
-            placeholder="Description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            required
+          <input 
+            className="p-2 rounded border" 
+            placeholder="Description" 
+            value={description} 
+            onChange={e => setDescription(e.target.value)} 
+            required 
           />
           <div className="text-left">
             <div className="font-semibold mb-2">Permissions:</div>
@@ -119,25 +120,25 @@ export default function AddRolePage() {
             </div>
           </div>
           <div className="flex gap-2 mt-2">
-            <button
-              type="submit"
-              className="flex-1 bg-amber-600 text-white py-2 rounded hover:bg-amber-700 transition disabled:opacity-50"
+            <button 
+              type="submit" 
+              className="flex-1 bg-amber-600 text-white py-2 rounded hover:bg-amber-700 transition disabled:opacity-50" 
               disabled={loading}
             >
               {loading ? "Saving..." : "Save"}
             </button>
-            <button
-              type="button"
-              className="flex-1 bg-amber-400 text-white py-2 rounded hover:bg-amber-500 transition"
-              disabled={loading}
+            <button 
+              type="button" 
+              className="flex-1 bg-amber-400 text-white py-2 rounded hover:bg-amber-500 transition" 
+              disabled={loading} 
               onClick={e => handleSubmit(e, true)}
             >
               Save and New
             </button>
-            <button
-              type="button"
-              className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition"
-              onClick={handleCancel}
+            <button 
+              type="button" 
+              className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400 transition" 
+              onClick={handleCancel} 
               disabled={loading}
             >
               Cancel
