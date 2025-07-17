@@ -2,12 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+type Permission = {
+  id: number;
+  name: string;
+  description?: string;
+};
+
 export default function AddRolePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [permissions, setPermissions] = useState<object[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
   const router = useRouter();
 
