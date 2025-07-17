@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import type { Transition } from "framer-motion";
 
 export default function Gallery() {
   const [mounted, setMounted] = useState(false);
@@ -30,15 +31,17 @@ export default function Gallery() {
     },
   };
 
+  const springTransition: Transition = {
+    type: "spring" as "spring",
+    stiffness: 100,
+  };
+
   const item = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
+      transition: springTransition,
     },
   };
 
