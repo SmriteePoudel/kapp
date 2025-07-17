@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Linkedin, Facebook, Twitter, Instagram } from "lucide-react";
+import type { Transition } from "framer-motion";
 
 export default function Footer() {
   const [mounted, setMounted] = useState(false);
@@ -34,7 +35,7 @@ export default function Footer() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: "spring" as const, stiffness: 100 }
+      transition: { type: "spring", stiffness: 100 } as Transition
     }
   };
 
