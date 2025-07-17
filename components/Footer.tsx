@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { Linkedin, Facebook, Twitter, Instagram } from "lucide-react";
 import type { Transition } from "framer-motion";
@@ -30,13 +30,16 @@ export default function Footer() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: "spring", stiffness: 100 } as const
-    }
+      transition: {
+        type: "spring",
+        stiffness: 100,
+      },
+    },
   };
 
   return (
