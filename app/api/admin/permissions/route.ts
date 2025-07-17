@@ -11,8 +11,8 @@ export async function POST(request: Request) {
       data: { name, description },
     });
     return NextResponse.json({ permission }, { status: 201 });
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error && 'code' in error && (error as any).code === 'P2002') {
       return NextResponse.json({ error: 'Permission name already exists.' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Failed to add permission.' }, { status: 500 });

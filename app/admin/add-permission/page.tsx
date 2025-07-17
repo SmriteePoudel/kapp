@@ -34,7 +34,7 @@ export default function AddPermissionPage() {
       } else {
         setError(data.error || 'Failed to add permission');
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong.');
     } finally {
       setLoading(false);

@@ -12,13 +12,13 @@ const sections = [
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('roles');
   const router = useRouter();
-  const [roles, setRoles] = useState<any[]>([]);
+  const [roles, setRoles] = useState<object[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [rolesError, setRolesError] = useState("");
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<object[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState("");
-  const [permissions, setPermissions] = useState<any[]>([]);
+  const [permissions, setPermissions] = useState<object[]>([]);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [permissionsError, setPermissionsError] = useState("");
 

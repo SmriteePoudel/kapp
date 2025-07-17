@@ -30,7 +30,7 @@ export default function AddUserPage() {
       } else {
         setMessage(data.error || "Failed to add user");
       }
-    } catch (err) {
+    } catch {
       setMessage("Something went wrong.");
     } finally {
       setLoading(false);

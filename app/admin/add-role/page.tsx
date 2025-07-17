@@ -7,7 +7,7 @@ export default function AddRolePage() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [permissions, setPermissions] = useState<any[]>([]);
+  const [permissions, setPermissions] = useState<object[]>([]);
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
   const router = useRouter();
 
@@ -50,7 +50,7 @@ export default function AddRolePage() {
       } else {
         setMessage(data.error || "Failed to add role");
       }
-    } catch (err) {
+    } catch {
       setMessage("Something went wrong.");
     } finally {
       setLoading(false);

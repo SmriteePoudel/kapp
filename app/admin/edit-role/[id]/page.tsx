@@ -45,7 +45,7 @@ export default function EditRolePage() {
       } else {
         setMessage(data.error || "Failed to update role");
       }
-    } catch (err) {
+    } catch {
       setMessage("Something went wrong.");
     } finally {
       setLoading(false);

@@ -47,7 +47,7 @@ export default function EditUserPage() {
       } else {
         setMessage(data.error || "Failed to update user");
       }
-    } catch (err) {
+    } catch {
       setMessage("Something went wrong.");
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ export default function EditUserPage() {
         const data = await res.json();
         setMessage(data.error || "Failed to delete user");
       }
-    } catch (err) {
+    } catch {
       setMessage("Something went wrong.");
     } finally {
       setLoading(false);
