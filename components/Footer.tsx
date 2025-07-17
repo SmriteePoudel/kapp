@@ -30,15 +30,17 @@ export default function Footer() {
     }
   };
 
-  const itemVariants: Variants = {
+  const springTransition: Transition = {
+    type: "spring" as "spring",
+    stiffness: 100,
+  };
+
+  const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-      },
+      transition: springTransition,
     },
   };
 
