@@ -22,7 +22,7 @@ export default function AddRolePage() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data.permissions)) {
-          setPermissions(data.permissions);
+          setPermissions(data.permissions as Permission[]);
         }
       });
   }, []);
