@@ -24,7 +24,7 @@ export default function AddRolePage() {
         if (
           Array.isArray(data.permissions) &&
           data.permissions.every(
-            (p) =>
+            (p: any) =>
               typeof p === "object" &&
               p !== null &&
               "id" in p &&
@@ -106,7 +106,7 @@ export default function AddRolePage() {
           <div className="text-left">
             <div className="font-semibold mb-2">Permissions:</div>
             <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
-              {(permissions as Permission[]).map((perm) => (
+              {permissions.map((perm: Permission) => (
                 <label key={perm.id} className="flex items-center gap-2">
                   <input
                     type="checkbox"
