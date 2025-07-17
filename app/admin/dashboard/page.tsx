@@ -3,6 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+type Role = {
+  id: number;
+  name: string;
+  description: string;
+  permissions?: Permission[];
+};
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  roles: string[];
+};
+type Permission = {
+  id: number;
+  name: string;
+  description?: string;
+};
+
 const sections = [
   { key: 'roles', label: 'Roles' },
   { key: 'users', label: 'Users' },
@@ -12,13 +30,13 @@ const sections = [
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState('roles');
   const router = useRouter();
-  const [roles, setRoles] = useState<object[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [rolesError, setRolesError] = useState("");
-  const [users, setUsers] = useState<object[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState("");
-  const [permissions, setPermissions] = useState<object[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [permissionsError, setPermissionsError] = useState("");
 
@@ -86,7 +104,7 @@ export default function AdminDashboard() {
           try {
             data = await res.json();
           } catch {}
-          alert(data.error || 'Failed to delete role');
+          alert((data as any)?.error || 'Failed to delete role');
         }
       })
       .catch(() => alert('Failed to delete role'));
@@ -105,7 +123,7 @@ export default function AdminDashboard() {
           try {
             data = await res.json();
           } catch {}
-          alert((data as any).error || 'Failed to delete user');
+          alert((data as any)?.error || 'Failed to delete user');
         }
       })
       .catch(() => alert('Failed to delete user'));
@@ -124,7 +142,7 @@ export default function AdminDashboard() {
           try {
             data = await res.json();
           } catch {}
-          alert((data as any).error || 'Failed to delete permission');
+          alert((data as any)?.error || 'Failed to delete permission');
         }
       })
       .catch(() => alert('Failed to delete permission'));
