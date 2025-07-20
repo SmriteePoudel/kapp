@@ -217,7 +217,7 @@ const FamilyPagesApp = () => {
           </p>
         </div>
 
-        {/* Generation Cards */}
+        
         <div className="space-y-12">
           {[
             {

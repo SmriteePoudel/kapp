@@ -28,7 +28,7 @@ export default function AddRolePage() {
         const data: ApiResponse = await res.json();
         
         if (Array.isArray(data.permissions)) {
-          // Ensure each permission has the correct structure
+          
           const validPermissions: Permission[] = data.permissions.map(perm => ({
             id: Number(perm.id),
             name: String(perm.name),

@@ -10,7 +10,7 @@ import Link from "next/link";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  // const [activeNav, setActiveNav] = useState('Home');
+  
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -24,6 +24,7 @@ export default function Header() {
     { name: "Family", href: "/family" },
     { name: "Blog", href: "/blog" },
     { name: "Pages", href: "/pages" },
+    { name: "Portfolio", href: "/portfolio" },
   ];
   return (
 <>
@@ -41,7 +42,7 @@ export default function Header() {
           </motion.div>
 
           <div className="flex items-center gap-4">
-            {/* Desktop Navigation */}
+            
             <div className="hidden md:flex space-x-4">
               {navigation.map((item) => (
                 <Link
@@ -66,7 +67,7 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Theme Toggle */}
+            
             <Button
               variant="ghost"
               size="icon"
@@ -84,7 +85,7 @@ export default function Header() {
               )}
             </Button>
 
-            {/* Mobile Menu Button */}
+            
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -99,7 +100,7 @@ export default function Header() {
           </div>
         </nav>
 
-        {/* Mobile Navigation */}
+        
         {isMenuOpen && (
           <motion.div
             className="md:hidden fixed top-16 inset-x-0 bg-white/95 dark:bg-slate-800/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 z-50"
@@ -139,7 +140,7 @@ export default function Header() {
         )}
       </div>
 
-      {/* Animated Background Elements */}
+      
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 opacity-10 mix-blend-soft-light" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/30 dark:from-slate-900/30 to-transparent" />
