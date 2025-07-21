@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { request } from 'http';
 
 
 export async function POST(request: NextRequest) {
@@ -15,23 +14,23 @@ export async function POST(request: NextRequest) {
 
     console.log('Incoming permission body:', body);
 
-    const { role, description } = body;
-    const safeRole = typeof role === 'string' ? role.trim() : '';
+    const { name, description } = body;
+    const safeName = typeof name === 'string' ? name.trim() : '';
 
-    if (!safeRole) {
+    if (!safeName) {
       return NextResponse.json({
-        error: 'Role name is required and must be a string. Received: ' + JSON.stringify(role),
+        error: 'Permission name is required and must be a string. Received: ' + JSON.stringify(name),
         debug: {
           body,
-          typeOfRole: typeof role,
-          valueOfRole: role
+          typeOfName: typeof name,
+          valueOfName: name
         }
       }, { status: 400 });
     }
 
     const permission = await prisma.permission.create({
       data: {
-        name: safeRole,
+        name: safeName,
         description: typeof description === 'string' ? description.trim() : ''
       },
     });
