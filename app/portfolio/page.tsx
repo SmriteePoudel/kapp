@@ -130,93 +130,155 @@ export default function PortfolioPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 py-16 px-4">
-      <h1 className="text-4xl font-bold text-amber-600 dark:text-amber-500 mb-4">Portfolio </h1>
-      <form onSubmit={handleSubmit} className="mb-8 w-full max-w-lg bg-white dark:bg-slate-800 rounded-xl shadow p-6 flex flex-col gap-4">
-        <input
-          className="p-2 rounded border"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <textarea
-          className="p-2 rounded border"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-        <input
-          type="file"
-          accept="image/*,application/pdf"
-          className="p-2 rounded border"
-          onChange={handleFileChange}
-        />
-        <input
-          className="p-2 rounded border"
-          placeholder="Email (optional)"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="p-2 rounded border"
-          placeholder="Phone (optional)"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        {imageUrl && (
-          <div className="mb-2">
-            {imageUrl.match(/\.pdf$/i) ? (
-              <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View PDF</a>
-            ) : (
-              <img src={imageUrl} alt="Preview" className="max-h-32 rounded" />
-            )}
-          </div>
-        )}
-        {error && <div className="text-red-500">{error}</div>}
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 transition"
-            disabled={loading || !title.trim() || !description.trim()}
-          >
-            {editingId ? "Update" : "Add"} Portfolio
-          </button>
-          {editingId && (
-            <button type="button" className="bg-gray-400 text-white px-4 py-2 rounded" onClick={handleCancelEdit}>
-              Cancel
+    <main className="min-h-screen p-8 bg-white">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-3xl font-bold mb-6 bg-gray-800 text-white p-4 -mx-6 -mt-6 rounded-t-lg">CRUD PORTFOLIO</h1>
+          
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Portfolio</h2>
+            <button
+              onClick={() => {
+                setEditingId(null);
+                setTitle("");
+                setDescription("");
+                setImageUrl("");
+                setEmail("");
+                setPhone("");
+                const form = document.getElementById("portfolioForm");
+                if (form) {
+                  form.classList.remove("hidden");
+                }
+              }}
+              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              + Add Project
             </button>
-          )}
-        </div>
-      </form>
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 w-full max-w-5xl">
-        {loading && <div>Loading...</div>}
-        {portfolios.map((portfolio) => (
-          <div key={portfolio.id} className="bg-white dark:bg-slate-800 rounded-xl shadow p-6 flex flex-col">
-            <h2 className="text-2xl font-semibold text-rose-600 dark:text-rose-400 mb-2">{portfolio.title}</h2>
-            <p className="text-slate-600 dark:text-slate-300 mb-4">{portfolio.description}</p>
-            {portfolio.imageUrl && (
-              <img src={portfolio.imageUrl} alt={portfolio.title} className="mb-4 rounded" />
-            )}
-            {portfolio.email && (
-              <p className="text-slate-500 dark:text-slate-400 mb-1">Email: {portfolio.email}</p>
-            )}
-            {portfolio.phone && (
-              <p className="text-slate-500 dark:text-slate-400 mb-1">Phone: {portfolio.phone}</p>
-            )}
-            <div className="flex gap-2 mt-auto">
-              <button className="bg-blue-500 text-white px-2 py-1 rounded" onClick={() => handleEdit(portfolio)}>
-                Edit
-              </button>
-              <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(portfolio.id)}>
-                Delete
-              </button>
-            </div>
           </div>
-        ))}
+
+          <form
+            id="portfolioForm"
+            onSubmit={handleSubmit}
+            className={`mb-8 bg-white rounded-lg border p-4 ${!editingId && !title ? 'hidden' : ''}`}
+          >
+            <div className="grid gap-4">
+              <input
+                className="p-2 rounded border text-gray-800"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+              <textarea
+                className="p-2 rounded border text-gray-800"
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                className="p-2 rounded border text-gray-800"
+                onChange={handleFileChange}
+              />
+              <input
+                className="p-2 rounded border text-gray-800"
+                placeholder="Email (optional)"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                className="p-2 rounded border text-gray-800"
+                placeholder="Phone (optional)"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+              {imageUrl && (
+                <div className="mb-2">
+                  {imageUrl.match(/\.pdf$/i) ? (
+                    <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View PDF</a>
+                  ) : (
+                    <img src={imageUrl} alt="Preview" className="max-h-32 rounded" />
+                  )}
+                </div>
+              )}
+              {error && <div className="text-red-500">{error}</div>}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                  disabled={loading || !title.trim() || !description.trim()}
+                >
+                  {editingId ? "Update" : "Add"} Project
+                </button>
+                <button 
+                  type="button" 
+                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition-colors" 
+                  onClick={() => {
+                    handleCancelEdit();
+                    const form = document.getElementById("portfolioForm");
+                    if (form) {
+                      form.classList.add("hidden");
+                    }
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4 text-gray-800 font-semibold">#</th>
+                  <th className="text-left py-3 px-4 text-gray-800 font-semibold">Name</th>
+                  <th className="text-left py-3 px-4 text-gray-800 font-semibold">Description</th>
+                  <th className="text-left py-3 px-4 text-gray-800 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-gray-600">Loading...</td>
+                  </tr>
+                ) : portfolios.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-gray-600">No projects found</td>
+                  </tr>
+                ) : (
+                  portfolios.map((portfolio, index) => (
+                    <tr key={portfolio.id} className="border-b">
+                      <td className="py-3 px-4 text-gray-800">{index + 1}</td>
+                      <td className="py-3 px-4 text-gray-800">{portfolio.title}</td>
+                      <td className="py-3 px-4 text-gray-800">{portfolio.description}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(portfolio)}
+                            className="border border-gray-400 text-gray-600 px-4 py-1 rounded hover:bg-gray-100 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(portfolio.id)}
+                            className="border border-red-400 text-red-600 px-4 py-1 rounded hover:bg-red-50 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </main>
   );
