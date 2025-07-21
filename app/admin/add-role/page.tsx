@@ -55,11 +55,18 @@ export default function AddRolePage() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+    if (!trimmedName || !trimmedDescription) {
+      setMessage("Role name and description are required.");
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/admin/roles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, permissionIds: selectedPermissions }),
+        body: JSON.stringify({ name: trimmedName, description: trimmedDescription, permissionIds: selectedPermissions || [] }),
       });
       const data = await res.json();
       if (res.ok) {

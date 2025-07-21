@@ -1,68 +1,96 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-export async function POST(request: Request) {
+const VALID_ROLES = ['ADMIN', 'USER'];
+
+export async function POST(request: NextRequest) {
   try {
-    const { name, email, roles } = await request.json();
-    if (!name || !email || !roles || !Array.isArray(roles) || roles.length === 0) {
-      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
+    let body;
+    try {
+      body = await request.json();
+    } catch (err) {
+      return NextResponse.json({ error: 'Invalid JSON payload.' }, { status: 400 });
     }
     
-    const password = await bcrypt.hash('changeme123', 10);
-    const user = await prisma.user.create({
-      data: { name, email, roles, password },
-    });
-    return NextResponse.json({ user }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Failed to add user.' }, { status: 500 });
+    let name = typeof body.name === 'string' && body.name.trim() !== '' ? body.name.trim() : `User_${Date.now()}`;
+    const email = typeof body.email === 'string' ? body.email.trim() : '';
+    let rolesArray: string[] = [];
+    if (Array.isArray(body.roles) && body.roles.length > 0) {
+      rolesArray = body.roles
+        .filter((r: any) => typeof r === 'string' && r.trim() !== '')
+        .map((r: string) => r.trim().toUpperCase())
+        .filter((r: string) => VALID_ROLES.includes(r));
+    } else if (typeof body.role === 'string' && body.role.trim() !== '') {
+      const role = body.role.trim().toUpperCase();
+      if (VALID_ROLES.includes(role)) {
+        rolesArray = [role];
+      }
+    }
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required and must be a string.' }, { status: 400 });
+    }
+    if (rolesArray.length === 0) {
+      
+      rolesArray = ['USER'];
+    }
+ 
+    const password = typeof body.password === 'string' && body.password.length >= 6 ? body.password : 'changeme123';
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    let user;
+    if (existingUser) {
+      user = await prisma.user.update({
+        where: { email },
+        data: {
+          name,
+          roles: rolesArray as any,
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          roles: true,
+        },
+      });
+      return NextResponse.json({ message: 'User updated successfully', user }, { status: 200 });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          roles: rolesArray as any,
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          roles: true,
+        },
+      });
+      return NextResponse.json({ message: 'User created successfully', user }, { status: 201 });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to create or update user.', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, roles: true }
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        roles: true,
+      },
     });
     return NextResponse.json({ users });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch users.' }, { status: 500 });
   }
 }
-
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-  if (!id) {
-    return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
-  }
-  try {
-    await prisma.user.delete({
-      where: { id: Number(id) },
-    });
-    return new Response(null, { status: 204 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete user.' }, { status: 500 });
-  }
-}
-
-export async function PUT(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-  if (!id) {
-    return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
-  }
-  try {
-    const { name, email, roles } = await request.json();
-    if (!name || !email || !roles || !Array.isArray(roles) || roles.length === 0) {
-      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
-    }
-    const user = await prisma.user.update({
-      where: { id: Number(id) },
-      data: { name, email, roles },
-    });
-    return NextResponse.json({ user });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update user.' }, { status: 500 });
-  }
-} 

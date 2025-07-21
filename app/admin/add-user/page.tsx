@@ -14,11 +14,20 @@ export default function AddUserPage() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const validRoles = ["ADMIN", "USER"];
+    const roleToSend = validRoles.includes(role) ? role : "USER";
+    if (!trimmedName || !trimmedEmail) {
+      setMessage("Name and email are required.");
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, roles: [role] }),
+        body: JSON.stringify({ name: trimmedName, email: trimmedEmail, roles: [roleToSend] }),
       });
       const data = await res.json();
       if (res.ok) {

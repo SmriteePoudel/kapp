@@ -16,11 +16,20 @@ export default function AddPermissionPage() {
     setLoading(true);
     setSuccess('');
     setError('');
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+    if (!trimmedName) {
+      setError('Permission name is required.');
+      setLoading(false);
+      return;
+    }
+    const payload = { name: trimmedName, description: trimmedDescription };
+    console.log('Sending permission payload:', payload);
     try {
       const res = await fetch('/api/admin/permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (res.ok) {
