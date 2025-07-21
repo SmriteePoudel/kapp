@@ -1,29 +1,21 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
-
 async function main() {
-  const email = 'admin@someone.com';
-  const password = 'admin123';
-  const hashedPassword = await bcrypt.hash(password, 10);
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (!existing) {
-    await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        roles: ['ADMIN'],
-        name: 'Admin',
-      },
-    });
-    console.log('Admin user created.');
-  } else {
-    console.log('Admin user already exists.');
-  }
+  const password = await bcrypt.hash('admin123', 10);
+  await prisma.user.upsert({
+    where: { email: 'admin@someone.com' },
+    update: {},
+    create: {
+      email: 'admin@someone.com',
+      password,
+      name: 'Admin',
+      roles: ['ADMIN'],
+    },
+  });
 
-  
+ 
   const permissions = [
     { name: 'roles.create', description: 'Can create roles' },
     { name: 'roles.delete', description: 'Can delete roles' },
@@ -40,32 +32,29 @@ async function main() {
     });
   }
 
-  
-  const allPermissions = await prisma.permission.findMany();
+  // Seed roles
   await prisma.userRole.upsert({
     where: { name: 'Admin' },
-    update: {
-      permissions: {
-        set: allPermissions.map((p: { id: number }) => ({ id: p.id })),
-      },
-    },
+    update: {},
     create: {
       name: 'Admin',
       description: 'Administrator role',
-      permissions: {
-        connect: allPermissions.map((p: { id: number }) => ({ id: p.id })),
-      },
     },
   });
 
-  console.log('Seeded permissions and admin role.');
+  await prisma.userRole.upsert({
+    where: { name: 'User' },
+    update: {},
+    create: {
+      name: 'User',
+      description: 'Regular user role',
+    },
+  });
+
+  console.log('Seeded admin user, roles, and permissions.');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  }); 
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+}); 
