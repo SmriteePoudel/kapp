@@ -47,45 +47,65 @@ export default function PortfolioPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const payload = { title, description, imageUrl, email, phone };
-    let res, data: any;
-    if (editingId) {
-      res = await fetch("/api/portfolio", {
-        method: "PUT",
+    
+    try {
+      const payload = { 
+        title: title.trim(), 
+        description: description.trim(), 
+        imageUrl: imageUrl || '', 
+        email: email?.trim() || '', 
+        phone: phone?.trim() || '' 
+      };
+
+      if (!payload.title || !payload.description) {
+        setError("Title and description are required.");
+        setLoading(false);
+        return;
+      }
+
+      const url = "/api/portfolio";
+      const method = editingId ? "PUT" : "POST";
+      const finalPayload = editingId ? { ...payload, id: editingId } : payload;
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, id: editingId }),
+        body: JSON.stringify(finalPayload),
       });
-      data = await res.json();
-      if (res.ok) {
-        setPortfolios((prev) => prev.map((p) => (p.id === editingId ? data.portfolio : p)));
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || `Failed to ${editingId ? 'update' : 'create'} portfolio`);
+      }
+
+      const data = await res.json();
+      
+      if (editingId) {
+        setPortfolios(prev => prev.map(p => p.id === editingId ? data.portfolio : p));
         setEditingId(null);
-        setTitle("");
-        setDescription("");
-        setImageUrl("");
-        setEmail("");
-        setPhone("");
       } else {
-        setError(data.error || "Failed to update portfolio");
+        setPortfolios(prev => [...prev, data.portfolio]);
       }
-    } else {
-      res = await fetch("/api/portfolio", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      data = await res.json();
-      if (res.ok) {
-        setPortfolios((prev) => [...prev, data.portfolio]);
-        setTitle("");
-        setDescription("");
-        setImageUrl("");
-        setEmail("");
-        setPhone("");
-      } else {
-        setError(data.error || "Failed to add portfolio");
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setImageUrl("");
+      setEmail("");
+      setPhone("");
+
+      // Hide form after successful submission
+      const form = document.getElementById("portfolioForm");
+      if (form) {
+        form.classList.add("hidden");
       }
+
+    } catch (err) {
+      console.error("Submission error:", err);
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   function handleEdit(portfolio: Portfolio) {
@@ -125,8 +145,25 @@ export default function PortfolioPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    const url = URL.createObjectURL(file);
-    setImageUrl(url);
+    const previewUrl = URL.createObjectURL(file);
+    setImageUrl(previewUrl);
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('/api/portfolio/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setImageUrl(data.url);
+      } else {
+        setError(data.error || 'Failed to upload file.');
+      }
+    } catch (err) {
+      setError('Failed to upload file.');
+    }
   }
 
   return (
@@ -238,17 +275,19 @@ export default function PortfolioPage() {
                   <th className="text-left py-3 px-4 text-gray-800 font-semibold">#</th>
                   <th className="text-left py-3 px-4 text-gray-800 font-semibold">Name</th>
                   <th className="text-left py-3 px-4 text-gray-800 font-semibold">Description</th>
+                  <th className="text-left py-3 px-4 text-gray-800 font-semibold">Phone</th>
+                  <th className="text-left py-3 px-4 text-gray-800 font-semibold">Email</th>
                   <th className="text-left py-3 px-4 text-gray-800 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-4 text-gray-600">Loading...</td>
+                    <td colSpan={6} className="text-center py-4 text-gray-600">Loading...</td>
                   </tr>
                 ) : portfolios.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-center py-4 text-gray-600">No projects found</td>
+                    <td colSpan={6} className="text-center py-4 text-gray-600">No projects found</td>
                   </tr>
                 ) : (
                   portfolios.map((portfolio, index) => (
@@ -256,6 +295,8 @@ export default function PortfolioPage() {
                       <td className="py-3 px-4 text-gray-800">{index + 1}</td>
                       <td className="py-3 px-4 text-gray-800">{portfolio.title}</td>
                       <td className="py-3 px-4 text-gray-800">{portfolio.description}</td>
+                      <td className="py-3 px-4 text-gray-800">{portfolio.phone || '-'}</td>
+                      <td className="py-3 px-4 text-gray-800">{portfolio.email || '-'}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
                           <button

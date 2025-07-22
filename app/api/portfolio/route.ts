@@ -51,14 +51,29 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'ID, title and description are required.' }, { status: 400 });
     }
 
+    // Parse id as number
+    const portfolioId = parseInt(id, 10);
+    if (isNaN(portfolioId)) {
+      return NextResponse.json({ error: 'Invalid ID format.' }, { status: 400 });
+    }
+
     const portfolio = await prisma.portfolio.update({
-      where: { id },
-      data: { title, description, imageUrl, email, phone },
+      where: { id: portfolioId },
+      data: { 
+        title, 
+        description, 
+        imageUrl: imageUrl || '', 
+        email: email || '', 
+        phone: phone || '' 
+      },
     });
 
     return NextResponse.json({ portfolio });
-  } catch (error) {
+  } catch (error: any) {
     console.error('PUT error:', error);
+    if (error.code === 'P2025') {
+      return NextResponse.json({ error: 'Portfolio not found.' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Failed to update portfolio.' }, { status: 500 });
   }
 }
