@@ -12,21 +12,13 @@ import Link from "next/link";
 export default function Birthday() {
   const [currentBirthdayIndex, setCurrentBirthdayIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [randomPositions, setRandomPositions] = useState<
-    Array<{ left: string; top: string }>
-  >([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editedBirthday, setEditedBirthday] = useState({
+    name: "",
+    birthDate: "",
+  });
 
-  useEffect(() => {
-    setMounted(true);
-    setRandomPositions(
-      Array.from({ length: 12 }, () => ({
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-      }))
-    );
-  }, []);
-
-  const birthdays = [
+  const [birthdays, setBirthdays] = useState([
     {
       name: "John Doe",
       birthDate: "1990-01-01",
@@ -42,7 +34,6 @@ export default function Birthday() {
       birthDate: "1990-01-01",
       photo: "/images/oldman1.webp",
     },
-
     {
       name: "Sita Devi Khanal",
       birthDate: "1990-01-01",
@@ -58,7 +49,21 @@ export default function Birthday() {
       birthDate: "1992-12-25",
       photo: "/images/oldman4.webp",
     },
-  ];
+  ]);
+
+  const [randomPositions, setRandomPositions] = useState<
+    Array<{ left: string; top: string }>
+  >([]);
+
+  useEffect(() => {
+    setMounted(true);
+    setRandomPositions(
+      Array.from({ length: 12 }, () => ({
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+      }))
+    );
+  }, []);
 
   return (
     <section className="relative py-24 bg-white dark:bg-slate-900 overflow-hidden">
@@ -134,11 +139,9 @@ export default function Birthday() {
                         <div className="flex items-center gap-2 mt-2 text-slate-600 dark:text-slate-300">
                           <CalendarDays className="h-5 w-5 text-amber-600 dark:text-amber-500" />
                           <p className="text-sm font-medium">
-                            {
-                              new Date(birthday.birthDate)
-                                .toISOString()
-                                .split("T")[0]
-                            }
+                            {new Date(birthday.birthDate)
+                              .toISOString()
+                              .split("T")[0]}
                           </p>
                         </div>
                         <div className="absolute top-4 right-4 bg-amber-600 dark:bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-medium border border-amber-500 dark:border-amber-400">
@@ -146,6 +149,21 @@ export default function Birthday() {
                             new Date(birthday.birthDate).getFullYear()}{" "}
                           Years
                         </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4 w-full"
+                          onClick={() => {
+                            setEditingIndex(index);
+                            setEditedBirthday({
+                              name: birthday.name,
+                              birthDate: birthday.birthDate,
+                            });
+                          }}
+                        >
+                          Edit
+                        </Button>
                       </div>
                     </Card>
                   </motion.div>
@@ -168,7 +186,7 @@ export default function Birthday() {
           </div>
         </div>
 
-        {/* Client-side only animated elements */}
+        {/* Floating animated dots */}
         {mounted && (
           <div className="absolute inset-0 pointer-events-none">
             {randomPositions.map((pos, i) => (
@@ -176,10 +194,7 @@ export default function Birthday() {
                 key={i}
                 className="absolute h-2 w-2 bg-amber-500/20 dark:bg-amber-500/20 rounded-full"
                 style={pos}
-                animate={{
-                  y: [0, -20, 0],
-                  opacity: [0.2, 1, 0.2],
-                }}
+                animate={{ y: [0, -20, 0], opacity: [0.2, 1, 0.2] }}
                 transition={{
                   duration: 2 + Math.random() * 2,
                   repeat: Infinity,
@@ -187,6 +202,68 @@ export default function Birthday() {
                 }}
               />
             ))}
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {editingIndex !== null && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4 text-amber-600 dark:text-amber-500">
+                Edit Birthday
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-1 font-medium">Name</label>
+                  <input
+                    type="text"
+                    value={editedBirthday.name}
+                    onChange={(e) =>
+                      setEditedBirthday({
+                        ...editedBirthday,
+                        name: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border rounded-md dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 font-medium">Birth Date</label>
+                  <input
+                    type="date"
+                    value={editedBirthday.birthDate}
+                    onChange={(e) =>
+                      setEditedBirthday({
+                        ...editedBirthday,
+                        birthDate: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border rounded-md dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 mt-4">
+                  <Button variant="ghost" onClick={() => setEditingIndex(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const updated = [...birthdays];
+                      updated[editingIndex] = {
+                        ...updated[editingIndex],
+                        ...editedBirthday,
+                      };
+                      setBirthdays(updated);
+                      setEditingIndex(null);
+                    }}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -87,14 +87,14 @@ export default function PortfolioPage() {
         setPortfolios(prev => [...prev, data.portfolio]);
       }
 
-      // Reset form
+      
       setTitle("");
       setDescription("");
       setImageUrl("");
       setEmail("");
       setPhone("");
 
-      // Hide form after successful submission
+      
       const form = document.getElementById("portfolioForm");
       if (form) {
         form.classList.add("hidden");
@@ -112,6 +112,9 @@ export default function PortfolioPage() {
     setEditingId(portfolio.id);
     setTitle(portfolio.title);
     setDescription(portfolio.description);
+    
+    
+
     setImageUrl(portfolio.imageUrl || "");
     setEmail(portfolio.email || "");
     setPhone(portfolio.phone || "");
@@ -138,6 +141,12 @@ export default function PortfolioPage() {
     setImageUrl("");
     setEmail("");
     setPhone("");
+    
+
+
+
+
+
   }
 
   
@@ -206,6 +215,9 @@ export default function PortfolioPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
+              
+              
+             
               <textarea
                 className="p-2 rounded border text-gray-800"
                 placeholder="Description"

@@ -7,15 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BlogPost {
-  id      Int      @id @default(autoincrement())
-  title   String
-  excerpt String
-  content String
-  date    DateTime @default(now())
-  tags    String[]
-}
-
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -25,19 +16,13 @@ model User {
   roles     Role[]
 }
 
-model UserRole {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
-  description String
-  createdAt   DateTime     @default(now())
-  permissions Permission[] @relation("RolePermissions")
-}
-
-model Permission {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  description String
-  roles       UserRole[] @relation("RolePermissions")
+model BlogPost {
+  id      Int      @id @default(autoincrement())
+  title   String
+  excerpt String
+  content String
+  date    DateTime @default(now())
+  tags    String[]
 }
 
 model Portfolio {
@@ -45,10 +30,64 @@ model Portfolio {
   title       String
   description String
   imageUrl    String?
-  email       String?
-  phone       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  email       String?
+  phone       String?
+}
+
+model Permission {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String
+  UserRole    UserRole[] @relation("RolePermissions")
+}
+
+model UserRole {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String
+  createdAt   DateTime     @default(now())
+  Permission  Permission[] @relation("RolePermissions")
+}
+
+model Member {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  name         String
+  image        String?
+  role         String?
+  relationship String?
+  spouseName   String?
+  children     Int?
+  fullBio      String?
+  email        String?
+  phone        String?
+  address      String?
+  career       String[]
+  skills       String[]
+  languages    String[]
+  hobbies      String[]
+  personality  String[]
+
+  education    Education[]
+  achievements Achievement[]
+}
+
+model Education {
+  id       Int    @id @default(autoincrement())
+  title    String
+  year     Int
+  memberId Int
+  member   Member @relation(fields: [memberId], references: [id])
+}
+
+model Achievement {
+  id       Int    @id @default(autoincrement())
+  title    String
+  year     Int
+  memberId Int
+  member   Member @relation(fields: [memberId], references: [id])
 }
 
 enum Role {

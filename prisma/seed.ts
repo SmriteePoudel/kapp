@@ -2,59 +2,51 @@ import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 
 async function main() {
+ 
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const userPassword = await bcrypt.hash('user123', 10);
 
-  const password = await bcrypt.hash('admin123', 10);
+  
   await prisma.user.upsert({
     where: { email: 'admin@someone.com' },
     update: {},
     create: {
       email: 'admin@someone.com',
-      password,
-      name: 'Admin',
-      roles: ['ADMIN'],
+      password: adminPassword,
+      firstname: 'Admin',
+      lastname: 'User',
+      role: 'ADMIN', 
     },
   });
+  await prisma.user.upsert({
+    where:{ email:'user@someone.com'},
+    update: {},
+    create:{
+      email:'user@someone.com',
+      password: userPassword,
+      role: 'USER'
+
+    },
+
+  })
 
  
-  const permissions = [
-    { name: 'roles.create', description: 'Can create roles' },
-    { name: 'roles.delete', description: 'Can delete roles' },
-    { name: 'users.create', description: 'Can create users' },
-    { name: 'users.delete', description: 'Can delete users' },
-    { name: 'permissions.manage', description: 'Can manage permissions' },
-  ];
-
-  for (const perm of permissions) {
-    await prisma.permission.upsert({
-      where: { name: perm.name },
-      update: {},
-      create: perm,
-    });
-  }
-
-  // Seed roles
-  await prisma.userRole.upsert({
-    where: { name: 'Admin' },
+  await prisma.user.upsert({
+    where: { email: 'user@someone.com' },
     update: {},
     create: {
-      name: 'Admin',
-      description: 'Administrator role',
+      email: 'user@someone.com',
+      password: userPassword,
+      firstname: 'Regular',
+      lastname: 'User',
+      role: 'USER', 
     },
   });
 
-  await prisma.userRole.upsert({
-    where: { name: 'User' },
-    update: {},
-    create: {
-      name: 'User',
-      description: 'Regular user role',
-    },
-  });
-
-  console.log('Seeded admin user, roles, and permissions.');
+  console.log('✅ Seed completed successfully.');
 }
 
-main().catch(e => {
-  console.error(e);
+main().catch((e) => {
+  console.error('❌ Seed error:', e);
   process.exit(1);
-}); 
+});

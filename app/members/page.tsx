@@ -8,24 +8,19 @@ import Link from "next/link";
 import { Users, HeartHandshake, Baby, ChevronRight } from "lucide-react";
 import { familyMembers, FamilyMember } from "@/data/family";
 
+const categories = [
+  { id: "all", label: "All Members", icon: Users },
+  { id: "parents", label: "Parents", icon: HeartHandshake },
+  { id: "children", label: "Children", icon: Baby },
+];
+
 export default function MembersPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const categories = [
-    { id: "all", label: "All Members", icon: Users },
-    { id: "parents", label: "Parents", icon: HeartHandshake },
-    { id: "children", label: "Children", icon: Baby },
-  ];
-
   const filteredMembers = familyMembers.filter((member: FamilyMember) => {
-    if (selectedCategory === "all") return true;
-    if (selectedCategory === "parents") {
-      return member.generation === 2; // Parents are in generation 2
-    }
-    if (selectedCategory === "children") {
-      return member.generation === 3; // Children are in generation 3
-    }
-    return true;
+    if (selectedCategory === "parents") return member.generation === 2;
+    if (selectedCategory === "children") return member.generation === 3;
+    return true; // "all"
   });
 
   return (
@@ -41,7 +36,7 @@ export default function MembersPage() {
             Our Family Members
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Meet the wonderful individuals who make up the Khanal family tree
+            Meet the wonderful individuals who make up the Khanal family tree.
           </p>
         </motion.div>
 
@@ -51,21 +46,25 @@ export default function MembersPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.id ? "default" : "outline"}
-              className={`rounded-full px-6 py-2 transition-all ${
-                selectedCategory === category.id
-                  ? "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-              }`}
-              onClick={() => setSelectedCategory(category.id)}
-            >
-              <category.icon className="w-5 h-5 mr-2" />
-              {category.label}
-            </Button>
-          ))}
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const isActive = selectedCategory === category.id;
+            return (
+              <Button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                variant={isActive ? "default" : "outline"}
+                className={`rounded-full px-6 py-2 transition-all ${
+                  isActive
+                    ? "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
+              >
+                <Icon className="w-5 h-5 mr-2" />
+                {category.label}
+              </Button>
+            );
+          })}
         </motion.div>
 
         {/* Members Grid */}
@@ -78,8 +77,8 @@ export default function MembersPage() {
               transition={{ duration: 0.3 }}
               className="relative group"
             >
-              <div className="border-2 border-slate-200 dark:border-slate-700 rounded-xl p-6 transition-all hover:border-rose-500 dark:hover:border-rose-400 hover:shadow-xl dark:hover:shadow-rose-500/10">
-                {/* Member Image */}
+              <div className="border-2 border-slate-200 dark:border-slate-700 rounded-xl p-6 hover:border-rose-500 dark:hover:border-rose-400 hover:shadow-xl dark:hover:shadow-rose-500/10 transition-all">
+                {/* Image */}
                 <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden mb-6">
                   <Image
                     src={member.image}
@@ -91,7 +90,7 @@ export default function MembersPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" />
                 </div>
 
-                {/* Member Details */}
+                {/* Details */}
                 <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100">
                   {member.name}
                 </h3>
@@ -103,15 +102,15 @@ export default function MembersPage() {
                     {member.birthDate}
                   </span>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
+                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
                   {member.bio}
                 </p>
 
-                {/* Action Button */}
+                {/* View Profile */}
                 <Link href={`/members/${member.slug}`}>
                   <Button
                     variant="outline"
-                    className="w-full bg-rose-500 hover:bg-rose-600 text-white dark:bg-rose-500 dark:hover:bg-rose-00 border-rose-500 dark:border-rose-600 group/btn"
+                    className="w-full bg-rose-500 hover:bg-rose-600 text-white dark:bg-rose-500 dark:hover:bg-rose-600 border-rose-500 dark:border-rose-600 group/btn"
                   >
                     View Full Profile
                     <ChevronRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
@@ -126,7 +125,7 @@ export default function MembersPage() {
         {filteredMembers.length === 0 && (
           <div className="text-center py-12">
             <p className="text-xl text-slate-600 dark:text-slate-300">
-              No members found in this category
+              No members found in this category.
             </p>
           </div>
         )}
