@@ -16,7 +16,7 @@ export interface Member {
   hobbies: string[];
   achievements: string[];
   favoriteQuote: string;
-  personalityTraits: string[];
+  personality: string[];
   skills: string[];
   languages: string[];
   socialLinks?: {

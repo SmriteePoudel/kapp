@@ -8,27 +8,6 @@ interface PageProps {
   params: { slug: string };
 }
 
-interface Member {
-  id: string;
-  slug: string;
-  name: string;
-  image: string;
-  role: string;
-  relationship: string;
-  fullBio: string;
-  email: string;
-  phone: string;
-  address: string;
-
-  education: { degree: string; year: string }[];
-  achievements: { title: string; year: string }[];
-
-  career: string[];
-  skills: string[];
-  languages: string[];
-  hobbies: string[];
-  personality: string[];
-}
 
 
 const createMemberData = (raw: Partial<Member>): Member => ({
@@ -73,7 +52,7 @@ const createMemberData = (raw: Partial<Member>): Member => ({
 });
 
 export default async function MemberPage({ params }: PageProps) {
-  const slug = await params.slug;
+  const slug = params.slug;
 
   console.log(params)
   
@@ -87,3 +66,4 @@ export default async function MemberPage({ params }: PageProps) {
  
   return <FullProfilePageClient member={createMemberData(fMember)} />;
 }
+

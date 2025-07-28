@@ -217,12 +217,13 @@ export default function ProfileEditor({ member }: Props) {
             />
 
             <TagListSection
-              title="Personality"
-              icon={<Smile className="w-5 h-5 text-yellow-500" />}
-              tags={profile.personality}
-              isEditing={isEditing}
-               onChange={(val) => handleFieldChange("personality", val)}
-              />
+            title="Personality"
+            icon={<Smile className="w-5 h-5 text-yellow-500" />}
+            tags={profile.personality || []}
+            isEditing={isEditing}
+            onChange={(val: string[]) => handleFieldChange("personality", val)}
+            />
+
 
           </div>
         </div>
