@@ -1,5 +1,5 @@
 export interface Member {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   role: string;

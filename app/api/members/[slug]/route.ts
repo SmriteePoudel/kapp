@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
         languages: body.languages,
         hobbies: body.hobbies,
         personality: body.personality,
-        // Delete existing and recreate education & achievements for simplicity
+        
         education: {
           deleteMany: {},
           create: body.education?.map((edu: any) => ({

@@ -17,25 +17,25 @@ export interface Member {
   hobbies?: string[];
   personality?: string[];
 
-  education?: { title: string; year?: string }[];
-  career?: { title: string; year?: string }[];
-  achievements?: { title: string; year?: string }[];
+  
+  achievements?: { title: string; year: number }[];
+  education?: { title: string; year: number }[];
+  career?: { title: string; company: string; year?: number }[];
 }
 
 
-export interface FamilyMember {
-  id: number;
-  slug: string;
-  name: string;
-  image: string;
-  relationship?: string;
-  personality?: string[];
-}
+
 
 
 export interface FamilyMember {
   id: number; 
   slug: string;
+  name:  string;
+  image: string;
+  relationship?: string;
   
   personality?: string[]; 
+  achievements?: { title: string; year: number }[];
+  education?: { title: string; year: number }[];
+  career?: { title: string; company: string; year?: number }[];
 }

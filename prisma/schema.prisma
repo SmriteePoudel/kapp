@@ -40,7 +40,7 @@ model Permission {
   id          Int        @id @default(autoincrement())
   name        String     @unique
   description String
-  UserRole    UserRole[] @relation("RolePermissions")
+  userRoles   UserRole[] @relation("RolePermissions")
 }
 
 model UserRole {
@@ -48,7 +48,7 @@ model UserRole {
   name        String       @unique
   description String
   createdAt   DateTime     @default(now())
-  Permission  Permission[] @relation("RolePermissions")
+  permissions Permission[] @relation("RolePermissions")
 }
 
 model Member {
@@ -70,24 +70,8 @@ model Member {
   hobbies      String[]
   personality  String[]
 
-  education    Education[]
-  achievements Achievement[]
-}
-
-model Education {
-  id       Int    @id @default(autoincrement())
-  title    String
-  year     Int
-  memberId Int
-  member   Member @relation(fields: [memberId], references: [id])
-}
-
-model Achievement {
-  id       Int    @id @default(autoincrement())
-  title    String
-  year     Int
-  memberId Int
-  member   Member @relation(fields: [memberId], references: [id])
+  education    Json // Array of {title, year}
+  achievements Json // Array of {title, year}
 }
 
 enum Role {
