@@ -41,6 +41,7 @@ const createMemberData = (raw: Partial<Member>): Member => ({
     ? raw.career.map((c: any) => ({
         title: typeof c?.title === "string" ? c.title : "",
         company: typeof c?.company === "string" ? c.company : "",
+        
         year: c?.year ? parseYear(c.year, 0) : 0,
       }))
     : [],
@@ -70,22 +71,16 @@ const createMemberData = (raw: Partial<Member>): Member => ({
     : [],
 });
 
-export default async function MemberPage(props: PageProps) {
-  // Await props to access params asynchronously
-  const { params } = await props;
+export default async function MemberPage({ params }: PageProps) {
   const { slug } = params;
 
   const fMember = familyMembers.find((m) => m.slug === slug);
 
-  if (!fMember) {
-    notFound();
-    return null;
-  }
+ const member = createMemberData({
+  ...fMember, 
+  id: fMember?.id = null ? fMember?.id.toString():"",
+});
 
-  const member = createMemberData({
-    ...fMember,
-    id: fMember.id?.toString() ?? "",
-  });
 
   return <FullProfilePageClient member={member} />;
 }

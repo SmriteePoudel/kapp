@@ -11,9 +11,10 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  name      String?
   createdAt DateTime @default(now())
   roles     Role[]
+  name      String?
+  status    String   @default("active")
 }
 
 model BlogPost {
@@ -52,8 +53,8 @@ model UserRole {
 }
 
 model Member {
-  id           Int      @id @default(autoincrement())
-  slug         String   @unique
+  id           Int           @id @default(autoincrement())
+  slug         String        @unique
   name         String
   image        String?
   role         String?
@@ -69,9 +70,24 @@ model Member {
   languages    String[]
   hobbies      String[]
   personality  String[]
+  Achievement  Achievement[]
+  Education    Education[]
+}
 
-  education    Json // Array of {title, year}
-  achievements Json // Array of {title, year}
+model Achievement {
+  id       Int    @id @default(autoincrement())
+  title    String
+  year     Int
+  memberId Int
+  Member   Member @relation(fields: [memberId], references: [id])
+}
+
+model Education {
+  id       Int    @id @default(autoincrement())
+  title    String
+  year     Int
+  memberId Int
+  Member   Member @relation(fields: [memberId], references: [id])
 }
 
 enum Role {

@@ -11,12 +11,12 @@ export interface Member {
   email: string;
   phone: string;
   address: string;
-  education: string[];
-  career: string[];
+  education:{title:string; year?: number}[];
+  career: {title:string; company:string; year?: number}[];
   hobbies: string[];
-  achievements: string[];
+  achievements: {title:string; year?: number}[];
   favoriteQuote: string;
-  personality: string[];
+  personality: {title:string; year?: number}[];
   skills: string[];
   languages: string[];
   socialLinks?: {
@@ -25,4 +25,22 @@ export interface Member {
     twitter?: string;
     linkedin?: string;
   };
-} 
+}
+
+export type Achievement = {
+  title: string;
+  year: number;
+};
+
+export type Career = {
+  title: string;
+  company: string;
+  year: number;
+
+};
+
+export type Education = {
+  title: string;
+  year: number;
+};
+

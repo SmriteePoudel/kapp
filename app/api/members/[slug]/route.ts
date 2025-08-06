@@ -26,14 +26,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
         hobbies: body.hobbies,
         personality: body.personality,
         
-        education: {
+        Education: {
           deleteMany: {},
           create: body.education?.map((edu: any) => ({
             title: edu.title,
             year: edu.year,
           })) || [],
         },
-        achievements: {
+        Achievement: {
           deleteMany: {},
           create: body.achievements?.map((ach: any) => ({
             title: ach.title,
@@ -41,11 +41,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
           })) || [],
         },
       },
-      include: {
-        education: true,
-        achievements: true,
+     include: {
+        Education: true,
+        Achievement: true,
       },
     });
+    
 
     return NextResponse.json(updatedMember);
   } catch (error) {

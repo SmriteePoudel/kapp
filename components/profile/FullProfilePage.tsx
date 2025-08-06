@@ -164,28 +164,50 @@ export default function ProfileEditor({ member }: Props) {
               onChange={(val) => handleFieldChange("fullBio", val)}
             />
 
-            <EditableListWithYearSection
-              title="Education"
-              icon={<GraduationCap className="w-6 h-6 text-blue-500" />}
-              items={profile.education as { title: string; year?: string }[]}
-              isEditing={isEditing}
-              onChange={(val) => handleFieldChange("education", val)}
-            />
+<EditableListWithYearSection
+  title="Education"
+  icon={<GraduationCap className="w-6 h-6 text-blue-500" />}
+  items={
+    Array.isArray(profile.education)
+      ? profile.education.map((item) =>
+          typeof item === "object"
+            ? (item as { title: string; year?: number })
+            : { title: item as string }
+        )
+      : []
+  }
+  isEditing={isEditing}
+  onChange={(val: { title: string; year?: number }[]) =>
+    handleFieldChange("education", val)
+  }
+/>
 
-            <EditableListWithYearSection
-              title="Achievements"
-              icon={<Trophy className="w-6 h-6 text-amber-500" />}
-              items={profile.achievements as { title: string; year?: string }[]}
-              isEditing={isEditing}
-              onChange={(val) => handleFieldChange("achievements", val)}
-            />
+<EditableListWithYearSection
+  title="Achievements"
+  icon={<Trophy className="w-6 h-6 text-amber-500" />}
+  items={
+    Array.isArray(profile.achievements)
+      ? profile.achievements.map((item) =>
+          typeof item === "object"
+            ? (item as { title: string; year?: number })
+            : { title: item as string }
+        )
+      : []
+  }
+  isEditing={isEditing}
+  onChange={(val: { title: string; year?: number }[]) =>
+    handleFieldChange("achievements", val)
+  }
+/>
+
+
 
             <EditableListSection
               title="Career Journey"
               icon={<Briefcase className="w-6 h-6 text-purple-500" />}
-              items={profile.career}
+              items={Array.isArray(profile.career) ? profile.career : [profile.career].filter(Boolean)}
               isEditing={isEditing}
-              onChange={(val) => handleFieldChange("career", val)}
+              onChange={(val: string[]) => handleFieldChange("career", val)}
             />
           </div>
 
@@ -195,7 +217,7 @@ export default function ProfileEditor({ member }: Props) {
             <TagListSection
               title="Skills"
               icon={<Heart className="w-5 h-5 text-sky-500" />}
-              tags={profile.skills}
+              tags={Array.isArray(profile.skills)?profile.skills : [profile.skills].filter(Boolean)}
               isEditing={isEditing}
               onChange={(val) => handleFieldChange("skills", val)}
             />
@@ -219,9 +241,19 @@ export default function ProfileEditor({ member }: Props) {
             <TagListSection
             title="Personality"
             icon={<Smile className="w-5 h-5 text-yellow-500" />}
-            tags={profile.personality || []}
+            tags={
+              Array.isArray(profile.personality)
+                ? profile.personality.map((item: any) =>
+                    typeof item === "string"
+                      ? item
+                      : typeof item === "object" && item !== null && "title" in item
+                      ? String(item.title)
+                      : ""
+                  )
+                : []
+            }
             isEditing={isEditing}
-            onChange={(val: string[]) => handleFieldChange("personality", val)}
+            onChange={(val: string[]) => handleFieldChange("personality", val.map(title => ({ title })))}
             />
 
 
@@ -264,17 +296,22 @@ function Section({ title, icon, isEditing, value, onChange }: {
 function EditableListWithYearSection({ title, icon, items, isEditing, onChange }: {
   title: string;
   icon: React.ReactNode;
-  items: { title: string; year?: string }[];
+  items: { title: string; year?: number }[];
   isEditing: boolean;
-  onChange: (items: { title: string; year?: string }[]) => void;
+  onChange: (items: { title: string; year?: number }[]) => void;
 }) {
   const handleChange = (index: number, key: "title" | "year", value: string) => {
     const updated = [...items];
-    updated[index] = { ...updated[index], [key]: value };
-    onChange(updated);
+    if (key === "year") {
+      
+      updated[index] = { ...updated[index], year: value === "" ? undefined : Number(value) };
+    } else {
+      updated[index] = { ...updated[index], title: value };
+    }
+    onChange(updated as { title: string; year?: number }[]);
   };
 
-  const handleAdd = () => onChange([...items, { title: "", year: "" }]);
+  const handleAdd = () => onChange([...items, { title: "", year: undefined }]);
   const handleRemove = (index: number) => onChange(items.filter((_, i) => i !== index));
 
   return (
