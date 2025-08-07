@@ -1,5 +1,5 @@
 export interface Member {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   role: string;
@@ -11,8 +11,8 @@ export interface Member {
   email: string;
   phone: string;
   address: string;
-  education:{title:string; year?: number}[];
-  career: {title:string; company:string; year?: number}[];
+  education:{title:string; year?: number| string}[];
+ career: string[];
   hobbies: string[];
   achievements: {title:string; year?: number}[];
   favoriteQuote: string;

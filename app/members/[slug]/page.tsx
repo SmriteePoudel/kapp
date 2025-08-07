@@ -11,8 +11,10 @@ const parseYear = (value: any, fallback: number): number => {
   return typeof value === "number" ? value : Number(value) || fallback;
 };
 
-const createMemberData = (raw: Partial<Member>): Member => ({
-  id: raw.id !== undefined && raw.id !== null ? String(raw.id) : "",
+const createMemberData = (
+  raw: Partial<{ id: string } & Omit<Member, "id">>
+): Member => ({
+  id: raw.id !== undefined && raw.id !== null ? Number(raw.id) : "0",
   slug: raw.slug || "",
   name: raw.name || "",
   image: raw.image || "",
@@ -38,36 +40,27 @@ const createMemberData = (raw: Partial<Member>): Member => ({
     : [],
 
   career: Array.isArray(raw.career)
-    ? raw.career.map((c: any) => ({
-        title: typeof c?.title === "string" ? c.title : "",
-        company: typeof c?.company === "string" ? c.company : "",
-        
-        year: c?.year ? parseYear(c.year, 0) : 0,
-      }))
+    ? raw.career.map((item: any) =>
+        typeof item === "object"
+          ? `${item.title} at ${item.company} (${parseYear(item.year, 0)})`
+          : item
+      )
     : [],
 
   skills: Array.isArray(raw.skills)
-    ? raw.skills.map((s: any) =>
-        typeof s === "string" ? s : s?.title || ""
-      )
+    ? raw.skills.map((s: any) => (typeof s === "string" ? s : s?.title || ""))
     : [],
 
   languages: Array.isArray(raw.languages)
-    ? raw.languages.map((l: any) =>
-        typeof l === "string" ? l : l?.title || ""
-      )
+    ? raw.languages.map((l: any) => (typeof l === "string" ? l : l?.title || ""))
     : [],
 
   hobbies: Array.isArray(raw.hobbies)
-    ? raw.hobbies.map((h: any) =>
-        typeof h === "string" ? h : h?.title || ""
-      )
+    ? raw.hobbies.map((h: any) => (typeof h === "string" ? h : h?.title || ""))
     : [],
 
   personality: Array.isArray(raw.personality)
-    ? raw.personality.map((p: any) =>
-        typeof p === "string" ? p : p?.title || ""
-      )
+    ? raw.personality.map((p: any) => (typeof p === "string" ? p : p?.title || ""))
     : [],
 });
 
@@ -75,12 +68,34 @@ export default async function MemberPage({ params }: PageProps) {
   const { slug } = params;
 
   const fMember = familyMembers.find((m) => m.slug === slug);
+  if (!fMember) return notFound();
 
- const member = createMemberData({
-  ...fMember, 
-  id: fMember?.id = null ? fMember?.id.toString():"",
-});
+  const member = createMemberData(fMember);
 
+  if (!member.id) {
+    member.id = familyMembers.length + 1;
+  }
+
+  if (fMember.education && member.education.length === 0) {
+    member.education = [{ title: "SEE", year: 2025 }];
+  }
+
+  if (fMember.hobbies && member.hobbies.length === 0) {
+    member.hobbies = ["Reading", "Traveling"];
+  }
+
+  if (!member.name || !member.slug) return notFound();
+  if (!member.image) member.image = "/images/default-profile.png";
+  if (!member.fullBio) member.fullBio = "No biography available.";
+  if (!member.bio) member.bio = "No short biography available.";
+  if (!member.email) member.email = "Not provided";
+  if (!member.phone) member.phone = "Not provided";
+  if (!member.address) member.address = "Not provided";
+  if (!member.role) member.role = "Family Member";
+  if (!member.relationship) member.relationship = "Relative";
+  if (!member.birthdate) member.birthdate = "Unknown";
 
   return <FullProfilePageClient member={member} />;
 }
+
+
