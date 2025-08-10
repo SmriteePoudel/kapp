@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { slug: string } }) {
   const slug = params.slug;
   const body = await req.json();
 

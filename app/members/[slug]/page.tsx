@@ -3,13 +3,17 @@ import { familyMembers } from "@/data/family";
 import FullProfilePageClient from "@/components/profile/FullProfilePage";
 import { Member } from "@/types/member";
 
+
+
 interface PageProps {
   params: { slug: string };
 }
+function parseYear(year: any, arg1: number): any {
+  throw new Error("Function not implemented.");
+}
 
-const parseYear = (value: any, fallback: number): number => {
-  return typeof value === "number" ? value : Number(value) || fallback;
-};
+
+
 
 const createMemberData = (
   raw: any
@@ -54,6 +58,15 @@ const createMemberData = (
   personality: raw.personality && raw.personality.map((p: any) => (typeof p === "string" ? p : p?.title || "")) || [],
 });
 
+
+
+
+
+
+
+
+
+
 export default async function MemberPage({ params }: PageProps) {
   const { slug } = params;
 
@@ -79,5 +92,6 @@ export default async function MemberPage({ params }: PageProps) {
 
   return <FullProfilePageClient member={member} />;
 }
+
 
 
