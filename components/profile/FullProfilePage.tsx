@@ -36,25 +36,30 @@ export default function ProfileEditor({ member }: Props) {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-  const updateProfile = async (updatedData: Member) => {
-    setSaving(true);
-    try {
-      const response = await fetch(`/api/members/${updatedData.slug}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-      if (!response.ok) throw new Error("Failed to update profile");
-      const updated: Member = await response.json();
-      setProfile(updated);
-      alert("Changes saved successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save changes.");
-    } finally {
-      setSaving(false);
+const updateProfile = async (member: Member) => {
+  try {
+    const res = await fetch("/api/profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(member),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Backend error response:", errorText); 
+      throw new Error("Failed to update profile");
     }
-  };
+
+    return await res.json();
+  } catch (err) {
+    console.error("❌ updateProfile() failed:", err);
+    throw err;
+  }
+};
+ 
+
 
   const handleSaveAll = async () => {
     await updateProfile(profile);

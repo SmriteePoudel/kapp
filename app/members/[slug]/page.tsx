@@ -2,6 +2,37 @@ import { notFound } from "next/navigation";
 import { familyMembers } from "@/data/family";
 import FullProfilePageClient from "@/components/profile/FullProfilePage";
 import { Member } from "@/types/member";
+import { NextApiRequest, NextApiResponse } from "next";
+
+export default function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<Member | { error: string }>
+) {
+  const { slug } = req.query;
+  if (typeof slug !== "string") {
+    return res.status(400).json({ error: "Invalid slug" });
+  }
+  if (typeof slug !== "string"){
+    return res.status(400).json({ error: "Invalid slug" });
+  }
+  if (req.method === "PUT"){
+    const updateData = req.body;
+    const index = familyMembers.findIndex((m) => m.slug === slug);
+    if (index === -1){
+      return res.status(404).json({ error: "Member not found" });
+    }
+    familyMembers[index] = {
+      ...familyMembers[index],
+      ...updateData,
+      slug,
+
+  };
+  return res.status(200).json(familyMembers[index]);
+}
+else {
+  res.setHeaders({ "Allow": "PUT" });
+  return res.status(405).end(`Method ${req.method} Not Allowed`);
+}
 
 interface PageProps {
   params: { slug: string };
@@ -64,6 +95,7 @@ const createMemberData = (
     : [],
 });
 
+
 export default async function MemberPage({ params }: PageProps) {
   const { slug } = params;
 
@@ -85,15 +117,7 @@ export default async function MemberPage({ params }: PageProps) {
   }
 
   if (!member.name || !member.slug) return notFound();
-  if (!member.image) member.image = "/images/default-profile.png";
-  if (!member.fullBio) member.fullBio = "No biography available.";
-  if (!member.bio) member.bio = "No short biography available.";
-  if (!member.email) member.email = "Not provided";
-  if (!member.phone) member.phone = "Not provided";
-  if (!member.address) member.address = "Not provided";
-  if (!member.role) member.role = "Family Member";
-  if (!member.relationship) member.relationship = "Relative";
-  if (!member.birthdate) member.birthdate = "Unknown";
+  
 
   return <FullProfilePageClient member={member} />;
 }

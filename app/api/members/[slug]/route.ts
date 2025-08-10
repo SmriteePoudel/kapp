@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(req: NextRequest, { params }: { params: { slug: string } }) {
   const slug = params.slug;
   const body = await req.json();
 
   try {
-   
     const updatedMember = await prisma.member.update({
       where: { slug },
       data: {
@@ -25,32 +24,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
         languages: body.languages,
         hobbies: body.hobbies,
         personality: body.personality,
-        
+
         Education: {
-          deleteMany: {},
+          deleteMany: {},  
           create: body.education?.map((edu: any) => ({
             title: edu.title,
             year: edu.year,
           })) || [],
         },
         Achievement: {
-          deleteMany: {},
+          deleteMany: {},  
           create: body.achievements?.map((ach: any) => ({
             title: ach.title,
             year: ach.year,
           })) || [],
         },
       },
-     include: {
+      include: {
         Education: true,
         Achievement: true,
       },
     });
-    
 
     return NextResponse.json(updatedMember);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to update member" }, { status: 500 });
+    console.error("Update failed:", error);
+    return NextResponse.json(
+      { error: "Failed to update member" },
+      { status: 500 }
+    );
   }
 }
