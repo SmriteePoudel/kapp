@@ -20,13 +20,13 @@ export default function MembersPage() {
   const filteredMembers = familyMembers.filter((member: FamilyMember) => {
     if (selectedCategory === "parents") return member.generation === 2;
     if (selectedCategory === "children") return member.generation === 3;
-    return true; // "all"
+    return true; 
   });
 
   return (
     <section className="py-20 bg-white dark:bg-slate-900 min-h-screen">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ export default function MembersPage() {
           </p>
         </motion.div>
 
-        {/* Category Filter */}
+        
         <motion.div
           className="flex flex-wrap justify-center gap-4 mb-12"
           initial={{ opacity: 0 }}
@@ -67,7 +67,7 @@ export default function MembersPage() {
           })}
         </motion.div>
 
-        {/* Members Grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredMembers.map((member) => (
             <motion.div
@@ -78,7 +78,7 @@ export default function MembersPage() {
               className="relative group"
             >
               <div className="border-2 border-slate-200 dark:border-slate-700 rounded-xl p-6 hover:border-rose-500 dark:hover:border-rose-400 hover:shadow-xl dark:hover:shadow-rose-500/10 transition-all">
-                {/* Image */}
+                
                 <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden mb-6">
                   <Image
                     src={member.image}
@@ -90,7 +90,7 @@ export default function MembersPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" />
                 </div>
 
-                {/* Details */}
+                
                 <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-100">
                   {member.name}
                 </h3>
@@ -106,7 +106,7 @@ export default function MembersPage() {
                   {member.bio}
                 </p>
 
-                {/* View Profile */}
+                
                 <Link href={`/members/${member.slug}`}>
                   <Button
                     variant="outline"
@@ -121,7 +121,7 @@ export default function MembersPage() {
           ))}
         </div>
 
-        {/* Empty State */}
+        
         {filteredMembers.length === 0 && (
           <div className="text-center py-12">
             <p className="text-xl text-slate-600 dark:text-slate-300">

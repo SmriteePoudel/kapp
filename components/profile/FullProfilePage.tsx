@@ -19,9 +19,9 @@ import {
   Briefcase,
   Smile,
   Languages,
+  X,
 } from "lucide-react";
 import type { Member } from "@/types/member";
-
 
 interface Props {
   member: Member;
@@ -29,41 +29,46 @@ interface Props {
 
 export default function ProfileEditor({ member }: Props) {
   const [profile, setProfile] = useState<Member>(member);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
+  const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
 
   const handleFieldChange = <K extends keyof Member>(field: K, value: Member[K]) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-const updateProfile = async (member: Member) => {
-  try {
-    const res = await fetch("/api/profile", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(member),
-    });
+  const updateProfile = async (updatedData: Member) => {
+    try {
+      const res = await fetch(`/api/members/${profile.slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("❌ Backend error response:", errorText); 
-      throw new Error("Failed to update profile");
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        console.error("Update failed:", errorMessage);
+        throw new Error(`Failed to update profile: ${errorMessage}`);
+      }
+
+      return await res.json();
+    } catch (error) {
+      console.error("Error in updateProfile:", error);
+      throw error;
     }
+  };
 
-    return await res.json();
-  } catch (err) {
-    console.error("❌ updateProfile() failed:", err);
-    throw err;
-  }
-};
- 
+  const handleSectionEdit = (sectionName: string, isEditing: boolean) => {
+    setEditingSections(prev => ({ ...prev, [sectionName]: isEditing }));
+  };
 
-
-  const handleSaveAll = async () => {
-    await updateProfile(profile);
-    setIsEditing(false);
+  const handleSectionSave = async (sectionName: string) => {
+    setSavingSections(prev => ({ ...prev, [sectionName]: true }));
+    try {
+      await updateProfile(profile);
+      setEditingSections(prev => ({ ...prev, [sectionName]: false }));
+    } finally {
+      setSavingSections(prev => ({ ...prev, [sectionName]: false }));
+    }
   };
 
   const handleShare = async () => {
@@ -99,16 +104,6 @@ const updateProfile = async (member: Member) => {
             </Button>
           </Link>
           <div className="flex gap-2">
-            {isEditing ? (
-              <Button onClick={handleSaveAll} disabled={saving}>
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? "Saving..." : "Save All"}
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                <Edit3 className="w-4 h-4 mr-2" /> Edit Profile
-              </Button>
-            )}
             <Button variant="outline" size="sm" onClick={handleShare}>
               <Share2 className="w-4 h-4 mr-2" /> Share
             </Button>
@@ -133,28 +128,62 @@ const updateProfile = async (member: Member) => {
                 />
               </div>
             </div>
-            <div className="text-center md:text-left text-white">
+            <div className="text-center md:text-left text-white flex-1">
               <h1 className="text-4xl md:text-5xl font-bold mb-2">{profile.name}</h1>
-              {isEditing ? (
-                <>
-                  <input
-                    type="text"
-                    value={profile.role || ""}
-                    onChange={(e) => handleFieldChange("role", e.target.value)}
-                    className="text-xl p-1 rounded text-black"
-                    placeholder="Role"
-                  />
-                  <input
-                    type="text"
-                    value={profile.relationship || ""}
-                    onChange={(e) => handleFieldChange("relationship", e.target.value)}
-                    className="text-xl p-1 rounded text-black ml-2"
-                    placeholder="Relationship"
-                  />
-                </>
-              ) : (
-                <p className="text-xl opacity-90 mb-4">{profile.role}</p>
-              )}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  {editingSections.header ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={profile.role || ""}
+                        onChange={(e) => handleFieldChange("role", e.target.value)}
+                        className="text-xl p-1 rounded text-black w-full"
+                        placeholder="Role"
+                      />
+                      <input
+                        type="text"
+                        value={profile.relationship || ""}
+                        onChange={(e) => handleFieldChange("relationship", e.target.value)}
+                        className="text-xl p-1 rounded text-black w-full"
+                        placeholder="Relationship"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-xl opacity-90 mb-4">{profile.role}</p>
+                  )}
+                </div>
+                <div className="ml-4">
+                  {editingSections.header ? (
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={() => handleSectionSave('header')}
+                        disabled={savingSections.header}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleSectionEdit('header', false)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-white hover:bg-white/20"
+                      onClick={() => handleSectionEdit('header', true)}
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -164,104 +193,136 @@ const updateProfile = async (member: Member) => {
             <Section
               title={`About ${profile.name}`}
               icon={<Heart className="w-6 h-6 text-rose-500" />}
-              isEditing={isEditing}
+              isEditing={editingSections.about || false}
+              isSaving={savingSections.about || false}
               value={profile.fullBio || ""}
               onChange={(val) => handleFieldChange("fullBio", val)}
+              onEdit={(editing) => handleSectionEdit('about', editing)}
+              onSave={() => handleSectionSave('about')}
             />
 
-<EditableListWithYearSection
-  title="Education"
-  icon={<GraduationCap className="w-6 h-6 text-blue-500" />}
-  items={
-    Array.isArray(profile.education)
-      ? profile.education.map((item) =>
-          typeof item === "object"
-            ? (item as { title: string; year?: number })
-            : { title: item as string }
-        )
-      : []
-  }
-  isEditing={isEditing}
-  onChange={(val: { title: string; year?: number }[]) =>
-    handleFieldChange("education", val)
-  }
-/>
+            <EditableListWithYearSection
+              title="Education"
+              icon={<GraduationCap className="w-6 h-6 text-blue-500" />}
+              items={
+                Array.isArray(profile.education)
+                  ? profile.education.map((item) =>
+                      typeof item === "object"
+                        ? (item as { title: string; year?: number })
+                        : { title: item as string }
+                    )
+                  : []
+              }
+              isEditing={editingSections.education || false}
+              isSaving={savingSections.education || false}
+              onChange={(val: { title: string; year?: number }[]) =>
+                handleFieldChange("education", val)
+              }
+              onEdit={(editing) => handleSectionEdit('education', editing)}
+              onSave={() => handleSectionSave('education')}
+            />
 
-<EditableListWithYearSection
-  title="Achievements"
-  icon={<Trophy className="w-6 h-6 text-amber-500" />}
-  items={
-    Array.isArray(profile.achievements)
-      ? profile.achievements.map((item) =>
-          typeof item === "object"
-            ? (item as { title: string; year?: number })
-            : { title: item as string }
-        )
-      : []
-  }
-  isEditing={isEditing}
-  onChange={(val: { title: string; year?: number }[]) =>
-    handleFieldChange("achievements", val)
-  }
-/>
-
-
+            <EditableListWithYearSection
+              title="Achievements"
+              icon={<Trophy className="w-6 h-6 text-amber-500" />}
+              items={
+                Array.isArray(profile.achievements)
+                  ? profile.achievements.map((item) =>
+                      typeof item === "object"
+                        ? (item as { title: string; year?: number })
+                        : { title: item as string }
+                    )
+                  : []
+              }
+              isEditing={editingSections.achievements || false}
+              isSaving={savingSections.achievements || false}
+              onChange={(val: { title: string; year?: number }[]) =>
+                handleFieldChange("achievements", val)
+              }
+              onEdit={(editing) => handleSectionEdit('achievements', editing)}
+              onSave={() => handleSectionSave('achievements')}
+            />
 
             <EditableListSection
               title="Career Journey"
               icon={<Briefcase className="w-6 h-6 text-purple-500" />}
               items={Array.isArray(profile.career) ? profile.career : [profile.career].filter(Boolean)}
-              isEditing={isEditing}
+              isEditing={editingSections.career || false}
+              isSaving={savingSections.career || false}
               onChange={(val: string[]) => handleFieldChange("career", val)}
+              onEdit={(editing) => handleSectionEdit('career', editing)}
+              onSave={() => handleSectionSave('career')}
             />
           </div>
 
           <div className="space-y-6">
-            <ContactSection profile={profile} isEditing={isEditing} onFieldChange={handleFieldChange} />
+            <ContactSection 
+              profile={profile} 
+              isEditing={editingSections.contact || false}
+              isSaving={savingSections.contact || false}
+              onFieldChange={handleFieldChange}
+              onEdit={(editing) => handleSectionEdit('contact', editing)}
+              onSave={() => handleSectionSave('contact')}
+            />
 
             <TagListSection
               title="Skills"
               icon={<Heart className="w-5 h-5 text-sky-500" />}
-              tags={Array.isArray(profile.skills)?profile.skills : [profile.skills].filter(Boolean)}
-              isEditing={isEditing}
+              tags={Array.isArray(profile.skills) ? profile.skills : [profile.skills].filter(Boolean)}
+              isEditing={editingSections.skills || false}
+              isSaving={savingSections.skills || false}
               onChange={(val) => handleFieldChange("skills", val)}
+              onEdit={(editing) => handleSectionEdit('skills', editing)}
+              onSave={() => handleSectionSave('skills')}
             />
 
             <TagListSection
               title="Languages"
               icon={<Languages className="w-5 h-5 text-lime-500" />}
-              tags={profile.languages}
-              isEditing={isEditing}
+              tags={profile.languages || []}
+              isEditing={editingSections.languages || false}
+              isSaving={savingSections.languages || false}
               onChange={(val) => handleFieldChange("languages", val)}
+              onEdit={(editing) => handleSectionEdit('languages', editing)}
+              onSave={() => handleSectionSave('languages')}
             />
 
             <TagListSection
               title="Hobbies & Interests"
               icon={<Heart className="w-5 h-5 text-pink-400" />}
-              tags={profile.hobbies}
-              isEditing={isEditing}
+              tags={profile.hobbies || []}
+              isEditing={editingSections.hobbies || false}
+              isSaving={savingSections.hobbies || false}
               onChange={(val) => handleFieldChange("hobbies", val)}
+              onEdit={(editing) => handleSectionEdit('hobbies', editing)}
+              onSave={() => handleSectionSave('hobbies')}
             />
 
             <TagListSection
-            title="Personality"
-            icon={<Smile className="w-5 h-5 text-yellow-500" />}
-            tags={
-              Array.isArray(profile.personality)
-                ? profile.personality.map((item: any) =>
-                    typeof item === "string"
-                      ? item
-                      : typeof item === "object" && item !== null && "title" in item
-                      ? String(item.title)
-                      : ""
-                  )
-                : []
-            }
-            isEditing={isEditing}
-            onChange={(val: string[]) => handleFieldChange("personality", val.map(title => ({ title })))}
+              title="Personality"
+              icon={<Smile className="w-5 h-5 text-yellow-500" />}
+              tags={
+                Array.isArray(profile.personality)
+                  ? profile.personality.map((item: any) =>
+                      typeof item === "string"
+                        ? item
+                        : typeof item === "object" && item !== null && "title" in item
+                        ? String(item.title)
+                        : ""
+                    )
+                  : []
+              }
+              isEditing={editingSections.personality || false}
+              isSaving={savingSections.personality || false}
+              onChange={(val: string[]) =>
+                handleFieldChange(
+                  "personality",
+                  val.map((title) => ({ title }))
+                )
+              }
+              onEdit={(editing) => handleSectionEdit('personality', editing)}
+              onSave={() => handleSectionSave('personality')}
             />
-
-
           </div>
         </div>
       </div>
@@ -269,20 +330,46 @@ const updateProfile = async (member: Member) => {
   );
 }
 
-
-
-function Section({ title, icon, isEditing, value, onChange }: {
+function Section({
+  title,
+  icon,
+  isEditing,
+  isSaving,
+  value,
+  onChange,
+  onEdit,
+  onSave,
+}: {
   title: string;
   icon: React.ReactNode;
   isEditing: boolean;
+  isSaving: boolean;
   value: string;
   onChange: (value: string) => void;
+  onEdit: (editing: boolean) => void;
+  onSave: () => void;
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2">
-        {icon}
-        <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          {icon}
+          <h2 className="text-xl font-semibold">{title}</h2>
+        </div>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Save className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(true)}>
+            <Edit3 className="w-4 h-4" />
+          </Button>
+        )}
       </div>
       {isEditing ? (
         <textarea
@@ -298,17 +385,28 @@ function Section({ title, icon, isEditing, value, onChange }: {
   );
 }
 
-function EditableListWithYearSection({ title, icon, items, isEditing, onChange }: {
+function EditableListWithYearSection({
+  title,
+  icon,
+  items,
+  isEditing,
+  isSaving,
+  onChange,
+  onEdit,
+  onSave,
+}: {
   title: string;
   icon: React.ReactNode;
   items: { title: string; year?: number }[];
   isEditing: boolean;
+  isSaving: boolean;
   onChange: (items: { title: string; year?: number }[]) => void;
+  onEdit: (editing: boolean) => void;
+  onSave: () => void;
 }) {
   const handleChange = (index: number, key: "title" | "year", value: string) => {
     const updated = [...items];
     if (key === "year") {
-      
       updated[index] = { ...updated[index], year: value === "" ? undefined : Number(value) };
     } else {
       updated[index] = { ...updated[index], title: value };
@@ -321,9 +419,25 @@ function EditableListWithYearSection({ title, icon, items, isEditing, onChange }
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2">
-        {icon}
-        <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          {icon}
+          <h2 className="text-xl font-semibold">{title}</h2>
+        </div>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Save className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(true)}>
+            <Edit3 className="w-4 h-4" />
+          </Button>
+        )}
       </div>
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-2">
@@ -336,7 +450,7 @@ function EditableListWithYearSection({ title, icon, items, isEditing, onChange }
                 placeholder="Title"
               />
               <input
-                value={item.year}
+                value={item.year ?? ""}
                 onChange={(e) => handleChange(index, "year", e.target.value)}
                 className="border p-1 rounded w-24"
                 placeholder="Year"
@@ -346,7 +460,9 @@ function EditableListWithYearSection({ title, icon, items, isEditing, onChange }
               </Button>
             </>
           ) : (
-            <p>• {item.title} {item.year && `(${item.year})`}</p>
+            <p>
+              • {item.title} {item.year && `(${item.year})`}
+            </p>
           )}
         </div>
       ))}
@@ -359,12 +475,24 @@ function EditableListWithYearSection({ title, icon, items, isEditing, onChange }
   );
 }
 
-function EditableListSection({ title, icon, items, isEditing, onChange }: {
+function EditableListSection({
+  title,
+  icon,
+  items,
+  isEditing,
+  isSaving,
+  onChange,
+  onEdit,
+  onSave,
+}: {
   title: string;
   icon: React.ReactNode;
   items: string[];
   isEditing: boolean;
+  isSaving: boolean;
   onChange: (items: string[]) => void;
+  onEdit: (editing: boolean) => void;
+  onSave: () => void;
 }) {
   const handleChange = (index: number, value: string) => {
     const updated = [...items];
@@ -376,9 +504,25 @@ function EditableListSection({ title, icon, items, isEditing, onChange }: {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2">
-        {icon}
-        <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          {icon}
+          <h2 className="text-xl font-semibold">{title}</h2>
+        </div>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Save className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(true)}>
+            <Edit3 className="w-4 h-4" />
+          </Button>
+        )}
       </div>
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-2">
@@ -407,10 +551,20 @@ function EditableListSection({ title, icon, items, isEditing, onChange }: {
   );
 }
 
-function ContactSection({ profile, isEditing, onFieldChange }: {
+function ContactSection({
+  profile,
+  isEditing,
+  isSaving,
+  onFieldChange,
+  onEdit,
+  onSave,
+}: {
   profile: Member;
   isEditing: boolean;
+  isSaving: boolean;
   onFieldChange: (field: "email" | "phone" | "address", value: string) => void;
+  onEdit: (editing: boolean) => void;
+  onSave: () => void;
 }) {
   const fields = [
     { label: "Email", key: "email" },
@@ -420,7 +574,23 @@ function ContactSection({ profile, isEditing, onFieldChange }: {
 
   return (
     <div className="space-y-2">
-      <h2 className="text-xl font-semibold">Contact</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Contact</h2>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Save className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(true)}>
+            <Edit3 className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
       {fields.map(({ label, key }) => (
         <div key={key}>
           <label className="block text-sm font-medium">{label}</label>
@@ -439,12 +609,24 @@ function ContactSection({ profile, isEditing, onFieldChange }: {
   );
 }
 
-function TagListSection({ title, icon, tags, isEditing, onChange }: {
+function TagListSection({
+  title,
+  icon,
+  tags,
+  isEditing,
+  isSaving,
+  onChange,
+  onEdit,
+  onSave,
+}: {
   title: string;
   icon: React.ReactNode;
   tags: string[];
   isEditing: boolean;
+  isSaving: boolean;
   onChange: (tags: string[]) => void;
+  onEdit: (editing: boolean) => void;
+  onSave: () => void;
 }) {
   const handleChange = (index: number, value: string) => {
     const updated = [...tags];
@@ -456,9 +638,25 @@ function TagListSection({ title, icon, tags, isEditing, onChange }: {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2">
-        {icon}
-        <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          {icon}
+          <h2 className="text-xl font-semibold">{title}</h2>
+        </div>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Save className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(true)}>
+            <Edit3 className="w-4 h-4" />
+          </Button>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
         {tags.map((tag, i) =>

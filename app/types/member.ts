@@ -1,7 +1,8 @@
 // types/member.ts
 
+
 export interface Member {
-  id: string;
+  id?: string;
   slug: string;
   name: string;
   image: string;
@@ -11,31 +12,75 @@ export interface Member {
   email?: string;
   phone?: string;
   address?: string;
-
+  
+  
   skills?: string[];
   languages?: string[];
   hobbies?: string[];
-  personality?: string[];
-
   
-  achievements?: { title: string; year: number }[];
-  education?: { title: string; year: number }[];
-  career?: { title: string; company: string; year?: number }[];
+  
+  personality?: string[] | { title: string }[];
+  
+  
+  achievements?: { title: string; year?: number }[];
+  education?: { title: string; year?: number }[];
+  
+  
+  career?: string[] | { title: string; company?: string; year?: number }[];
+  
+ 
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 
-
-
-
 export interface FamilyMember {
-  id: number; 
+  id: number;
   slug: string;
-  name:  string;
+  name: string;
   image: string;
+  role?: string;
   relationship?: string;
+  fullBio?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
   
-  personality?: string[]; 
-  achievements?: { title: string; year: number }[];
-  education?: { title: string; year: number }[];
-  career?: { title: string; company: string; year?: number }[];
+  
+  skills?: string[];
+  languages?: string[];
+  hobbies?: string[];
+  personality?: string[] | { title: string }[];
+  
+  
+  achievements?: { title: string; year?: number }[];
+  education?: { title: string; year?: number }[];
+  career?: string[] | { title: string; company?: string; year?: number }[];
+}
+
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+
+export interface MemberUpdate {
+  slug: string;
+  name?: string;
+  role?: string;
+  relationship?: string;
+  fullBio?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  skills?: string[];
+  languages?: string[];
+  hobbies?: string[];
+  personality?: string[] | { title: string }[];
+  achievements?: { title: string; year?: number }[];
+  education?: { title: string; year?: number }[];
+  career?: string[] | { title: string; company?: string; year?: number }[];
 }
