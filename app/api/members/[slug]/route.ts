@@ -1,4 +1,5 @@
-// app/api/members/[slug]/route.ts
+
+
 import { NextRequest, NextResponse } from 'next/server';
 import { familyMembers } from '@/data/family';
 import type { Member } from '@/types/member';
@@ -12,6 +13,7 @@ export async function PUT(
     
     console.log('PUT request received for slug:', slug);
     
+    
     let updateData;
     try {
       updateData = await request.json();
@@ -23,6 +25,7 @@ export async function PUT(
         { status: 400 }
       );
     }
+
     
     if (!slug) {
       console.error('No slug provided');
@@ -31,6 +34,7 @@ export async function PUT(
         { status: 400 }
       );
     }
+
     
     console.log('Searching for member with slug:', slug);
     console.log('Available family members:', familyMembers.map(m => ({ slug: m.slug, name: m.name })));
@@ -46,9 +50,11 @@ export async function PUT(
     }
 
     console.log('Found member at index:', memberIndex);
+
     
     const originalMember = familyMembers[memberIndex];
     console.log('Original member:', originalMember);
+
     
     const updatedMember = {
       ...originalMember,
@@ -57,6 +63,7 @@ export async function PUT(
     };
 
     console.log('Updated member data:', updatedMember);
+
     
     try {
       familyMembers[memberIndex] = updatedMember;
@@ -80,7 +87,7 @@ export async function PUT(
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -124,7 +131,7 @@ export async function GET(
   } catch (error) {
     console.error('Error in GET /api/members/[slug]:', error);
     return NextResponse.json(
-      {
+      { 
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

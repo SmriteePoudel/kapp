@@ -1,141 +1,118 @@
+import { notFound } from "next/navigation";
+import { familyMembers } from "@/data/family";
+import FullProfilePageClient from "@/components/profile/FullProfilePage";
+import { Member } from "@/types/member";
 
-
-import { NextRequest, NextResponse } from 'next/server';
-import { familyMembers } from '@/data/family';
-import type { Member } from '@/types/member';
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
-  try {
-    const { slug } = params;
-    
-    console.log('PUT request received for slug:', slug);
-    
-    
-    let updateData;
-    try {
-      updateData = await request.json();
-      console.log('Update data received:', updateData);
-    } catch (parseError) {
-      console.error('Error parsing request body:', parseError);
-      return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
-        { status: 400 }
-      );
-    }
-
-    
-    if (!slug) {
-      console.error('No slug provided');
-      return NextResponse.json(
-        { error: 'Slug parameter is required' },
-        { status: 400 }
-      );
-    }
-
-    
-    console.log('Searching for member with slug:', slug);
-    console.log('Available family members:', familyMembers.map(m => ({ slug: m.slug, name: m.name })));
-    
-    const memberIndex = familyMembers.findIndex(m => m.slug === slug);
-    
-    if (memberIndex === -1) {
-      console.error('Member not found with slug:', slug);
-      return NextResponse.json(
-        { error: `Member not found with slug: ${slug}` },
-        { status: 404 }
-      );
-    }
-
-    console.log('Found member at index:', memberIndex);
-
-    
-    const originalMember = familyMembers[memberIndex];
-    console.log('Original member:', originalMember);
-
-    
-    const updatedMember = {
-      ...originalMember,
-      ...updateData,
-      updatedAt: new Date().toISOString()
-    };
-
-    console.log('Updated member data:', updatedMember);
-
-    
-    try {
-      familyMembers[memberIndex] = updatedMember;
-      console.log('Member updated successfully in array');
-    } catch (updateError) {
-      console.error('Error updating member in array:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update member data' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: updatedMember,
-      message: 'Profile updated successfully'
-    });
-
-  } catch (error) {
-    console.error('Unexpected error in PUT /api/members/[slug]:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
+interface PageProps {
+  params: { slug: string };
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
-  try {
-    const { slug } = params;
-    console.log('GET request received for slug:', slug);
+function parseYear(year: any, fallback?: number): number | undefined {
+  
+  if (!year) return fallback;
+  const parsed = Number(year);
+  return isNaN(parsed) ? fallback : parsed;
+}
 
-    if (!slug) {
-      return NextResponse.json(
-        { error: 'Slug parameter is required' },
-        { status: 400 }
-      );
-    }
+const createMemberData = (raw: any): Member => ({
+  id: raw.id !== undefined && raw.id !== null ? Number(raw.id) : 0,
+  slug: raw.slug || "",
+  name: raw.name || "",
+  image: raw.image || "",
+  role: raw.role || "",
+  relationship: raw.relationship || "",
+  bio: raw.bio || "",
+  fullBio: raw.fullBio || "",
+  birthdate: raw.birthdate || "",
+  favoriteQuote: raw.favoriteQuote || "",
+  email: raw.email || "",
+  phone: raw.phone || "",
+  address: raw.address || "",
 
-    const member = familyMembers.find(m => m.slug === slug);
+  education:
+    raw.education && raw.education.length > 0
+      ? raw.education.map((item: any) => ({
+          title: typeof item === "string" ? item : item.title || "",
+          year: typeof item === "object" && item.year ? parseYear(item.year) : undefined
+        }))
+      : [],
 
-    if (!member) {
-      console.log('Member not found for slug:', slug);
-      return NextResponse.json(
-        { error: `Member not found with slug: ${slug}` },
-        { status: 404 }
-      );
-    }
+  achievements:
+    raw.achievements && raw.achievements.length > 0
+      ? raw.achievements.map((item: any) => ({
+          title: typeof item === "string" ? item : item.title || "",
+          year: typeof item === "object" && item.year ? parseYear(item.year) : undefined
+        }))
+      : [],
 
-    console.log('Member found:', member.name);
+  career:
+    raw.career && raw.career.length > 0
+      ? raw.career.map((item: any) =>
+          typeof item === "object"
+            ? `${item.title}${item.company ? ` at ${item.company}` : ''}${item.year ? ` (${item.year})` : ''}`
+            : item
+        )
+      : [],
 
-    return NextResponse.json({
-      success: true,
-      data: member
-    });
+  skills:
+    raw.skills && raw.skills.length > 0
+      ? raw.skills.map((s: any) =>
+          typeof s === "string" ? s : s?.title || ""
+        )
+      : [],
 
-  } catch (error) {
-    console.error('Error in GET /api/members/[slug]:', error);
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+  languages:
+    raw.languages && raw.languages.length > 0
+      ? raw.languages.map((l: any) =>
+          typeof l === "string" ? l : l?.title || ""
+        )
+      : [],
+
+  hobbies:
+    raw.hobbies && raw.hobbies.length > 0
+      ? raw.hobbies.map((h: any) =>
+          typeof h === "string" ? h : h?.title || ""
+        )
+      : [],
+
+  personality:
+    raw.personality && raw.personality.length > 0
+      ? raw.personality.map((p: any) =>
+          typeof p === "string" ? p : p?.title || ""
+        )
+      : [],
+});
+
+async function updateProfile(updatedField: Partial<Member>) {
+
+  console.log("Updating profile with:", updatedField);
+  
+  return new Promise((resolve) => setTimeout(resolve, 500));
+}
+
+export default async function MemberPage({ params }: PageProps) {
+  const { slug } = params;
+
+  const fMember = familyMembers.find((m) => m.slug === slug);
+  if (!fMember) return notFound();
+
+  const member = createMemberData(fMember);
+
+  if (!member.id) {
+    member.id = familyMembers.length + 1;
   }
+
+  if (fMember.education && member.education.length === 0) {
+    member.education = [{ title: "SEE", year: 2025 }];
+  }
+
+  if (fMember.hobbies && member.hobbies.length === 0) {
+    member.hobbies = ["Reading", "Traveling"];
+  }
+
+  if (!member.name || !member.slug) return notFound();
+
+
+
+  return <FullProfilePageClient member={member} />;
 }
