@@ -19,6 +19,13 @@ async function main() {
       lastname: "User",
       roles: ["USER"],
     },
+    {
+      email: "ram@someone.com",
+      password: await bcrypt.hash("ram123", 10),
+      firstname: "Ram Bahadur",
+      lastname: "Khanal",
+      roles: ["USER"],
+    },
   ];
 
   for (const user of users) {

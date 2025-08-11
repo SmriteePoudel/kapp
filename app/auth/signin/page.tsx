@@ -32,7 +32,7 @@ const SignInRegister: React.FC = () => {
     setError(null);
 
     try {
-      // Validation
+      
       if (!email || !password || (isRegistering && (!name || !role || !status))) {
         setError("Please fill in all required fields.");
         setLoading(false);
@@ -62,7 +62,13 @@ const SignInRegister: React.FC = () => {
         if (isRegistering) {
           setIsRegistering(false);
         } else {
-          router.push("/");
+          
+
+          if (data.user?.slug) {
+            router.push(`/members/${data.user.slug}`);
+          } else {
+            router.push("/");
+          }
         }
       }
     } catch (err) {
