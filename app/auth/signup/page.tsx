@@ -1,14 +1,82 @@
 "use client";
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Github } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { FcGoogle } from 'react-icons/fc';
 import Link from 'next/link';
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+
+    // Basic validation
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role: 'user',
+          status: 'active'
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong');
+      } else {
+        setSuccess(true);
+        // Redirect to home page after successful registration
+        setTimeout(() => {
+          router.push('/');
+        }, 1000);
+      }
+    } catch (err) {
+      setError('Something went wrong!');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <main className="min-h-screen bg-gradient-to-br from-rose-50/20 via-amber-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
@@ -40,15 +108,30 @@ export default function SignUpPage() {
                   </p>
                 </div>
 
-                <form className="space-y-6">
+                {error && (
+                  <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {success && (
+                  <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+                    Account created successfully! Redirecting to home page...
+                  </div>
+                )}
+
+                <form className="space-y-6" onSubmit={handleSubmit}>
                   <div>
                     <Label className="text-slate-700 dark:text-slate-300 mb-2 block">
                       Full Name
                     </Label>
                     <Input
                       type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       placeholder="John Doe"
                       className="w-full rounded-lg border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400"
+                      required
                     />
                   </div>
 
@@ -58,8 +141,11 @@ export default function SignUpPage() {
                     </Label>
                     <Input
                       type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@family.com"
                       className="w-full rounded-lg border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400"
+                      required
                     />
                   </div>
 
@@ -69,8 +155,11 @@ export default function SignUpPage() {
                     </Label>
                     <Input
                       type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="w-full rounded-lg border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400"
+                      required
                     />
                   </div>
 
@@ -80,8 +169,11 @@ export default function SignUpPage() {
                     </Label>
                     <Input
                       type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
                       className="w-full rounded-lg border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400"
+                      required
                     />
                   </div>
 
@@ -90,6 +182,7 @@ export default function SignUpPage() {
                       type="checkbox"
                       id="terms"
                       className="h-4 w-4 text-rose-500 dark:text-rose-400 rounded border-slate-300 dark:border-slate-600 focus:ring-rose-500 dark:focus:ring-rose-400"
+                      required
                     />
                     <Label
                       htmlFor="terms"
@@ -104,9 +197,10 @@ export default function SignUpPage() {
 
                   <Button
                     type="submit"
+                    disabled={loading}
                     className="w-full bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white transition-all"
                   >
-                    Create Account
+                    {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </form>
 

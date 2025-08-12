@@ -65,7 +65,7 @@ model UserRole {
   createdAt   DateTime     @default(now())
   permissions Permission[] @relation("RolePermissions")
 
-  @@map("user_roles")
+  @@map("user_role")
 }
 
 model Member {
@@ -137,7 +137,7 @@ model Education {
   userId       Int?    @unique
   user         User?   @relation(fields: [userId], references: [id])
 
-  @@map("education")
+  @@map("educations")
 }
 
 model Contact {

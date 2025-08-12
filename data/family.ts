@@ -14,7 +14,7 @@ export interface FamilyMember {
   bio: string;
   slug: string;
   generation: number;
-  // Additional Member properties
+  
   fullBio: string;
   birthdate: string;
   relationship: string;

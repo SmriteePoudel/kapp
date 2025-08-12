@@ -64,11 +64,8 @@ const SignInRegister: React.FC = () => {
         } else {
           
 
-          if (data.user?.slug) {
-            router.push(`/members/${data.user.slug}`);
-          } else {
-            router.push("/");
-          }
+          setMessage("Login successful! Redirecting...")
+          router.push("/");
         }
       }
     } catch (err) {

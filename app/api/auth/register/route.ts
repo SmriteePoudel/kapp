@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { error } from "console";
+import { setAuthCookie } from '@/lib/auth';
+
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 export async function POST(req: NextRequest){
   try{
@@ -25,7 +36,52 @@ export async function POST(req: NextRequest){
         status
       }
      });
-     return NextResponse.json({ 'message': 'User registered successfully', user: { email: newUser.email } }, { status: 201 });
+     
+     
+     const slug = generateSlug(name);
+     const memberData = {
+       slug: slug,
+       name: name,
+       email: email,
+       image: '/images/default-avatar.png', 
+       role: 'Family Member',
+       relationship: 'User',
+       fullBio: `Member profile for ${name}`,
+       personality: [],
+       achievements: [],
+     };
+     
+     
+     let uniqueSlug = slug;
+     let counter = 1;
+     while (await prisma.member.findUnique({ where: { slug: uniqueSlug } })) {
+       uniqueSlug = `${slug}-${counter}`;
+       counter++;
+     }
+     
+     const newMember = await prisma.member.create({
+       data: {
+         ...memberData,
+         slug: uniqueSlug,
+         userId: newUser.id
+       }
+     });
+
+     // Set auth cookie
+     await setAuthCookie({
+       id: newUser.id.toString(),
+       email: newUser.email,
+       roles: ['USER'] // Default role for new users
+     });
+
+     return NextResponse.json({
+       'message': 'User registered successfully',
+       user: {
+         email: newUser.email,
+         name: newUser.name,
+         slug: newMember.slug
+       }
+     }, { status: 201 });
     }
     catch(error:any){
       console.error('Register error:',error.message || error);

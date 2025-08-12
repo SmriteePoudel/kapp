@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { familyMembers } from '@/data/family';
+import { setAuthCookie } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { email, password } = body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        Member: true
+      }
+    });
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
@@ -19,8 +25,21 @@ export async function POST(req: NextRequest) {
     }
 
     
-    const member = familyMembers.find(m => m.email?.toLowerCase() === email.toLowerCase());
-    const slug = member ? member.slug : null;
+    let slug = null;
+    if (user.Member && user.Member.length > 0) {
+      slug = user.Member[0].slug;
+    } else {
+      
+      const member = familyMembers.find(m => m.email?.toLowerCase() === email.toLowerCase());
+      slug = member ? member.slug : null;
+    }
+
+    // Set auth cookie
+    await setAuthCookie({
+      id: user.id.toString(),
+      email: user.email,
+      roles: user.roles as string[]
+    });
 
     return NextResponse.json({
       message: 'Login successful',
