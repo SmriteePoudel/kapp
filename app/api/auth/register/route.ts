@@ -67,12 +67,19 @@ export async function POST(req: NextRequest){
        }
      });
 
-     // Set auth cookie
-     await setAuthCookie({
+     
+     const payload: any = {
        id: newUser.id.toString(),
        email: newUser.email,
-       roles: ['USER'] // Default role for new users
-     });
+       roles: ['USER'] 
+     };
+     
+     
+     if (newUser.name) {
+       payload.name = newUser.name;
+     }
+     
+     await setAuthCookie(payload);
 
      return NextResponse.json({
        'message': 'User registered successfully',

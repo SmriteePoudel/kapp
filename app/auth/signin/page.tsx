@@ -60,12 +60,19 @@ const SignInRegister: React.FC = () => {
         resetFields();
 
         if (isRegistering) {
+          
+          window.dispatchEvent(new CustomEvent("authStateChanged"));
+          
           setIsRegistering(false);
         } else {
+           
+          window.dispatchEvent(new CustomEvent("authStateChanged"));
           
-
+          // Add a small delay to ensure the event is processed before redirecting
           setMessage("Login successful! Redirecting...")
-          router.push("/");
+          setTimeout(() => {
+            router.push("/");
+          }, 100);
         }
       }
     } catch (err) {

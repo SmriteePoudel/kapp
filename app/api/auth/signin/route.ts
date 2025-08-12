@@ -34,12 +34,19 @@ export async function POST(req: NextRequest) {
       slug = member ? member.slug : null;
     }
 
-    // Set auth cookie
-    await setAuthCookie({
+    
+    const payload: any = {
       id: user.id.toString(),
       email: user.email,
       roles: user.roles as string[]
-    });
+    };
+    
+    
+    if (user.name) {
+      payload.name = user.name;
+    }
+    
+    await setAuthCookie(payload);
 
     return NextResponse.json({
       message: 'Login successful',

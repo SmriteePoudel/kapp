@@ -4,7 +4,7 @@ import { verifyToken, getAuthToken } from '@/lib/auth';
 export function middleware(request: NextRequest) {
   const token = getAuthToken(request);
   
-  // For admin routes, require authentication
+  
   if (request.nextUrl.pathname.startsWith('/admin')) {
     if (!token) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
@@ -15,15 +15,15 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
     }
     
-    // Check if user has admin role
+    
     if (!payload.roles.includes('ADMIN')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
   
-  // For API routes that require authentication
+ 
   if (request.nextUrl.pathname.startsWith('/api')) {
-    // Skip public API routes
+    
     const publicApiRoutes = [
       '/api/auth/signin',
       '/api/auth/register',

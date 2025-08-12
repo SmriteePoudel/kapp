@@ -23,33 +23,67 @@ export default function Header() {
     checkAuthStatus();
   }, []);
 
+  // Check auth status when pathname changes
   useEffect(() => {
     checkAuthStatus();
   }, [pathname]);
 
+  // Enhanced event listeners for auth state changes
   useEffect(() => {
-    const handleAuthChange = () => checkAuthStatus();
+    const handleAuthChange = () => {
+      console.log("Auth state changed, checking status...");
+      checkAuthStatus();
+    };
+    
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isProfileOpen && !(event.target as Element).closest('.profile-dropdown')) {
+        setIsProfileOpen(false);
+      }
+      if (isMenuOpen && !(event.target as Element).closest('.mobile-menu')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // Listen for various auth-related events
     window.addEventListener("authStateChanged", handleAuthChange);
     window.addEventListener("storage", handleAuthChange);
+    window.addEventListener("focus", handleAuthChange); // Check when window gains focus
+    document.addEventListener("click", handleClickOutside);
+    
+    // Also check periodically (optional - for better UX)
+    const intervalId = setInterval(checkAuthStatus, 60000); // Check every minute
+    
     return () => {
       window.removeEventListener("authStateChanged", handleAuthChange);
       window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("focus", handleAuthChange);
+      document.removeEventListener("click", handleClickOutside);
+      clearInterval(intervalId);
     };
-  }, []);
+  }, [isProfileOpen, isMenuOpen]);
 
   const checkAuthStatus = async () => {
     try {
-      const res = await fetch("/api/test-auth", {
+      console.log("Checking auth status...");
+      const res = await fetch("/api/auth/home", {
         credentials: "include",
         cache: "no-store",
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
+      
       if (res.ok) {
         const data = await res.json();
-        setUser(data.user);
+        console.log("Auth check successful:", data);
+        setUser(data);
       } else {
+        console.log("Auth check failed, status:", res.status);
         setUser(null);
       }
-    } catch {
+    } catch (error) {
+      console.error("Auth check error:", error);
       setUser(null);
     } finally {
       setAuthLoading(false);
@@ -58,16 +92,26 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
-      await fetch("/api/auth/logout", {
+      const res = await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
+      
+      if (res.ok) {
+        setUser(null);
+        setIsProfileOpen(false);
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent("authStateChanged"));
+        router.push("/");
+      } else {
+        throw new Error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      // Still try to clear local state even if API call fails
       setUser(null);
       setIsProfileOpen(false);
       window.dispatchEvent(new CustomEvent("authStateChanged"));
-      router.push("/");
-    } catch (error) {
-      console.error("Sign out failed:", error);
     }
   };
 
@@ -80,24 +124,39 @@ export default function Header() {
     { name: "Portfolio", href: "/portfolio" },
   ];
 
-  const AuthButton = () => {
-    if (authLoading) {
-      return <div className="animate-pulse bg-slate-200 dark:bg-slate-700 h-9 w-20 rounded-lg" />;
+  const getUserDisplayName = (user: JwtPayload) => {
+    if (user.name && user.name.trim()) {
+      return user.name.trim();
     }
-    if (user) {
+    return user.email.split('@')[0];
+  };
+
+  const AuthButton = () => {
+    // Show loading state
+    if (authLoading) {
       return (
-        <div className="relative">
+        <div className="animate-pulse bg-slate-200 dark:bg-slate-700 h-9 w-20 rounded-lg" />
+      );
+    }
+
+    // Show profile dropdown when user is logged in
+    if (user) {
+      const displayName = getUserDisplayName(user);
+      
+      return (
+        <div className="relative profile-dropdown">
           <motion.button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            aria-label={`Profile menu for ${displayName}`}
           >
             <div className="w-7 h-7 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg">
-              {user.email.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </div>
-            <span className="font-medium text-slate-700 dark:text-slate-300 hidden sm:block">
-              {user.email}
+            <span className="font-medium text-slate-700 dark:text-slate-300 hidden sm:block max-w-32 truncate">
+              {displayName}
             </span>
             <ChevronDown
               className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
@@ -118,23 +177,38 @@ export default function Header() {
                 <div className="p-4 border-b border-slate-100 dark:border-slate-700">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                      {user.email.charAt(0).toUpperCase()}
+                      {displayName.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">{user.email}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Roles: {user.roles.join(", ")}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {displayName}
                       </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                        {user.email}
+                      </p>
+                      {user.roles && user.roles.length > 0 && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          {user.roles.join(", ")}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="py-2">
-                  <Link href="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center space-x-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                  <Link 
+                    href="/profile" 
+                    onClick={() => setIsProfileOpen(false)} 
+                    className="flex items-center space-x-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  >
                     <User className="w-4 h-4" />
                     <span>Profile</span>
                   </Link>
-                  {user.roles.includes("ADMIN") && (
-                    <Link href="/admin/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center space-x-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+                  {user.roles && user.roles.includes("ADMIN") && (
+                    <Link 
+                      href="/admin/dashboard" 
+                      onClick={() => setIsProfileOpen(false)} 
+                      className="flex items-center space-x-3 px-4 py-3 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
                       <Settings className="w-4 h-4" />
                       <span>Admin Dashboard</span>
                     </Link>
@@ -154,9 +228,11 @@ export default function Header() {
         </div>
       );
     }
+
+    // Show sign in button when user is not logged in
     return (
       <Link href="/auth/signin">
-        <Button className="px-6 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg">
+        <Button className="px-6 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg transition-all duration-200">
           Sign In
         </Button>
       </Link>
@@ -174,7 +250,9 @@ export default function Header() {
               </h1>
             </Link>
           </motion.div>
+          
           <div className="flex items-center gap-4">
+            {/* Desktop Navigation */}
             <div className="hidden md:flex space-x-4">
               {navigation.map((item) => (
                 <Link
@@ -191,6 +269,8 @@ export default function Header() {
               ))}
               <AuthButton />
             </div>
+
+            {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -205,9 +285,11 @@ export default function Header() {
                 <Moon className="h-5 w-5" />
               )}
             </Button>
+
+            {/* Mobile Menu Button */}
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mobile-menu"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
@@ -219,6 +301,39 @@ export default function Header() {
             </motion.button>
           </div>
         </nav>
+
+        {/* Mobile Navigation Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 mobile-menu"
+            >
+              <div className="container mx-auto px-4 py-4 space-y-2">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block rounded-lg px-4 py-3 font-medium transition-all duration-200 ${
+                      pathname === item.href
+                        ? "bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <AuthButton />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );
