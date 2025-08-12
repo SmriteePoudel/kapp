@@ -15,6 +15,14 @@ model User {
   roles     Role[]
   name      String?
   status    String   @default("active")
+
+  Member        Member[]
+  Education     Education?
+  careerJourney careerJourney?
+  Achievement   Achievement?
+  Contact       Contact?
+
+  @@map("users")
 }
 
 model BlogPost {
@@ -24,6 +32,8 @@ model BlogPost {
   content String
   date    DateTime @default(now())
   tags    String[]
+
+  @@map("blog_posts")
 }
 
 model Portfolio {
@@ -35,6 +45,8 @@ model Portfolio {
   updatedAt   DateTime @updatedAt
   email       String?
   phone       String?
+
+  @@map("portfolios")
 }
 
 model Permission {
@@ -42,6 +54,8 @@ model Permission {
   name        String     @unique
   description String
   userRoles   UserRole[] @relation("RolePermissions")
+
+  @@map("permissions")
 }
 
 model UserRole {
@@ -50,47 +64,140 @@ model UserRole {
   description String
   createdAt   DateTime     @default(now())
   permissions Permission[] @relation("RolePermissions")
+
+  @@map("user_roles")
 }
 
 model Member {
-  id           Int           @id @default(autoincrement())
-  slug         String        @unique
-  name         String
-  image        String?
-  role         String?
-  relationship String?
-  spouseName   String?
-  children     Int?
-  fullBio      String?
-  email        String?
-  phone        String?
-  address      String?
-  career       String[]
-  skills       String[]
-  languages    String[]
-  hobbies      String[]
-  personality  String[]
-  Achievement  Achievement[]
-  Education    Education[]
+  id                 Int             @id @default(autoincrement())
+  slug               String          @unique
+  name               String
+  userId             Int?            @unique
+  user               User?           @relation(fields: [userId], references: [id])
+  image              String?
+  role               String?
+  relationship       String?
+  spouseName         String?
+  children           String?
+  fullBio            String?
+  email              String?
+  phone              String?
+  address            String?
+  ancestorsHierarchy String[]
+  career             Json?
+  skills             Json?
+  contactInfo        Json?
+  languages          Json?
+  hobbies            Json?
+  citizenshipNo      String?
+  description        String?
+  personality        Json
+  achievements       Json
+  Education          Education[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  Achievement        Achievement[]
+  careerJourney      careerJourney[]
+
+  @@map("members")
 }
 
 model Achievement {
-  id       Int    @id @default(autoincrement())
-  title    String
-  year     Int
+  id       Int   @id @default(autoincrement())
+  user     User? @relation(fields: [userId], references: [id])
+  userId   Int?  @unique
   memberId Int
-  Member   Member @relation(fields: [memberId], references: [id])
+
+  title            String
+  date             DateTime?
+  organizationName String?
+
+  description String?
+  position    String?
+  Member      Member  @relation(fields: [memberId], references: [id])
+
+  @@map("achievements")
 }
 
 model Education {
-  id       Int    @id @default(autoincrement())
-  title    String
-  year     Int
+  id           Int     @id @default(autoincrement())
+  title        String
+  schoolName   String?
+  uniName      String?
+  description  String?
+  degree       String?
+  fieldOfStudy String?
+  startYear    Int?
+  endYear      Int?
+  faculty      String?
+  activities   String?
+  skills       String?
+  memberId     Int
+  Member       Member  @relation(fields: [memberId], references: [id])
+  userId       Int?    @unique
+  user         User?   @relation(fields: [userId], references: [id])
+
+  @@map("education")
+}
+
+model Contact {
+  id     Int   @id @default(autoincrement())
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  name      String
+  email     String[]
+  phone     String[]
+  addressId Int?
+  address   Address? @relation(fields: [addressId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("contacts")
+}
+
+model careerJourney {
+  id                Int       @id @default(autoincrement())
+  title             String
+  description       String
+  startDate         DateTime
+  endDate           DateTime?
+  memberId          Int
+  Member            Member    @relation(fields: [memberId], references: [id])
+  positionIncompany String?
+  skills            String[]
+  careerType        String
+  location          String?
+  locationType      Json?
+  userId            Int?      @unique
+  user              User?     @relation(fields: [userId], references: [id])
+
+  @@map("career_journeyies")
+}
+
+model FamilyDetails {
+  id       Int @id @default(autoincrement())
   memberId Int
-  Member   Member @relation(fields: [memberId], references: [id])
+
+  name         String
+  relationship String[]
+
+  description String?
+
+  @@map("family_details")
+}
+
+model Address {
+  id        Int       @id @default(autoincrement())
+  permanent String
+  temporary String?
+  Contact   Contact[]
+
+  @@map("addresses")
 }
 
 enum Role {
   ADMIN
   USER
+
+  @@map("roles")
 }

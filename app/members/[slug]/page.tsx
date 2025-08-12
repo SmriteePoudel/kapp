@@ -91,7 +91,7 @@ async function updateProfile(updatedField: Partial<Member>) {
 }
 
 export default async function MemberPage({ params }: PageProps) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const fMember = familyMembers.find((m) => m.slug === slug);
   if (!fMember) return notFound();
