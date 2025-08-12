@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid password' }, { status: 401 });
     }
 
-    // Find the member with matching email to get the slug
+    
     const member = familyMembers.find(m => m.email?.toLowerCase() === email.toLowerCase());
     const slug = member ? member.slug : null;
 

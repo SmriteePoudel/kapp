@@ -32,7 +32,7 @@ async function main() {
     },
   });
 
-  // Create user for Ram Bahadur Khanal
+  
   const ramEmail = 'ramkhanal121@gmail.com'.toLowerCase().trim();
   const ramPassword = await bcrypt.hash('ram123', 10);
   
@@ -46,6 +46,8 @@ async function main() {
       roles: [Role.USER],
     },
   });
+
+  
 
   console.log('✅ Seed completed successfully.');
   console.log('🔐 Admin Login:', { email: admin.email, password: 'admin123' });
