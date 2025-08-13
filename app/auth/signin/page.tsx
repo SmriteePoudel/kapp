@@ -68,7 +68,7 @@ const SignInRegister: React.FC = () => {
            
           window.dispatchEvent(new CustomEvent("authStateChanged"));
           
-          // Add a small delay to ensure the event is processed before redirecting
+          
           setMessage("Login successful! Redirecting...")
           setTimeout(() => {
             router.push("/");
@@ -81,8 +81,7 @@ const SignInRegister: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
+  }; 
   return (
     <div style={styles.container}>
       <form style={styles.formBox} onSubmit={handleSubmit}>
@@ -279,5 +278,4 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "14px",
   },
 };
-
 export default SignInRegister;

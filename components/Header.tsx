@@ -15,6 +15,7 @@ export default function Header() {
   const [authLoading, setAuthLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+  
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -23,12 +24,12 @@ export default function Header() {
     checkAuthStatus();
   }, []);
 
-  // Check auth status when pathname changes
+  
   useEffect(() => {
     checkAuthStatus();
   }, [pathname]);
 
-  // Enhanced event listeners for auth state changes
+  
   useEffect(() => {
     const handleAuthChange = () => {
       console.log("Auth state changed, checking status...");
@@ -44,14 +45,14 @@ export default function Header() {
       }
     };
 
-    // Listen for various auth-related events
+    
     window.addEventListener("authStateChanged", handleAuthChange);
     window.addEventListener("storage", handleAuthChange);
-    window.addEventListener("focus", handleAuthChange); // Check when window gains focus
+    window.addEventListener("focus", handleAuthChange); 
     document.addEventListener("click", handleClickOutside);
     
-    // Also check periodically (optional - for better UX)
-    const intervalId = setInterval(checkAuthStatus, 60000); // Check every minute
+    
+    const intervalId = setInterval(checkAuthStatus, 60000);
     
     return () => {
       window.removeEventListener("authStateChanged", handleAuthChange);
@@ -77,7 +78,7 @@ export default function Header() {
       if (res.ok) {
         const data = await res.json();
         console.log("Auth check successful:", data);
-        setUser(data);
+        setUser(data.user);
       } else {
         console.log("Auth check failed, status:", res.status);
         setUser(null);
@@ -100,7 +101,7 @@ export default function Header() {
       if (res.ok) {
         setUser(null);
         setIsProfileOpen(false);
-        // Dispatch event to notify other components
+        
         window.dispatchEvent(new CustomEvent("authStateChanged"));
         router.push("/");
       } else {
@@ -108,10 +109,11 @@ export default function Header() {
       }
     } catch (error) {
       console.error("Sign out failed:", error);
-      // Still try to clear local state even if API call fails
+      
       setUser(null);
       setIsProfileOpen(false);
       window.dispatchEvent(new CustomEvent("authStateChanged"));
+      router.push ("/");
     }
   };
 
@@ -132,14 +134,14 @@ export default function Header() {
   };
 
   const AuthButton = () => {
-    // Show loading state
+    
     if (authLoading) {
       return (
         <div className="animate-pulse bg-slate-200 dark:bg-slate-700 h-9 w-20 rounded-lg" />
       );
     }
 
-    // Show profile dropdown when user is logged in
+    
     if (user) {
       const displayName = getUserDisplayName(user);
       
@@ -229,7 +231,7 @@ export default function Header() {
       );
     }
 
-    // Show sign in button when user is not logged in
+    
     return (
       <Link href="/auth/signin">
         <Button className="px-6 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg transition-all duration-200">
@@ -252,7 +254,7 @@ export default function Header() {
           </motion.div>
           
           <div className="flex items-center gap-4">
-            {/* Desktop Navigation */}
+            
             <div className="hidden md:flex space-x-4">
               {navigation.map((item) => (
                 <Link
@@ -270,7 +272,7 @@ export default function Header() {
               <AuthButton />
             </div>
 
-            {/* Theme Toggle */}
+            
             <Button
               variant="ghost"
               size="icon"
@@ -286,7 +288,7 @@ export default function Header() {
               )}
             </Button>
 
-            {/* Mobile Menu Button */}
+            
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mobile-menu"
@@ -302,7 +304,7 @@ export default function Header() {
           </div>
         </nav>
 
-        {/* Mobile Navigation Menu */}
+        
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
