@@ -21,7 +21,7 @@ import {
   Languages,
   X,
 } from "lucide-react";
-import type { Member } from "@/types/member";
+import type { Member } from "@/app/types/member";
 
 interface Props {
   member: Member;
@@ -88,6 +88,7 @@ export default function ProfileEditor({ member }: Props) {
       console.error("Share failed:", err);
     }
   };
+  
 
   return (
     <motion.div
@@ -246,7 +247,13 @@ export default function ProfileEditor({ member }: Props) {
             <EditableListSection
               title="Career Journey"
               icon={<Briefcase className="w-6 h-6 text-purple-500" />}
-              items={Array.isArray(profile.career) ? profile.career : [profile.career].filter(Boolean)}
+              items={
+                Array.isArray(profile.career)
+                  ? profile.career.map(item =>
+                      typeof item === "string" ? item : `${item.title}${item.company ? ` at ${item.company}` : ""}${item.year ? ` (${item.year})` : ""}`
+                    )
+                  : []
+              }
               isEditing={editingSections.career || false}
               isSaving={savingSections.career || false}
               onChange={(val: string[]) => handleFieldChange("career", val)}
@@ -268,7 +275,7 @@ export default function ProfileEditor({ member }: Props) {
             <TagListSection
               title="Skills"
               icon={<Heart className="w-5 h-5 text-sky-500" />}
-              tags={Array.isArray(profile.skills) ? profile.skills : [profile.skills].filter(Boolean)}
+              tags={Array.isArray(profile.skills) ? profile.skills : profile.skills ? [profile.skills].filter(Boolean) : []}
               isEditing={editingSections.skills || false}
               isSaving={savingSections.skills || false}
               onChange={(val) => handleFieldChange("skills", val)}

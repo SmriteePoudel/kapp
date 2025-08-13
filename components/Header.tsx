@@ -75,7 +75,7 @@ export default function Header() {
         }
       });
       
-      if (res.ok) {
+      if (res.status==200) {
         const data = await res.json();
         console.log("Auth check successful:", data);
         setUser(data.user);
@@ -93,27 +93,35 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
+      console.log("Sign out initiated");
       const res = await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
       
+      console.log("Logout response status:", res.status);
+      console.log("Logout response ok:", res.ok);
+      
       if (res.ok) {
+        console.log("Logout successful");
         setUser(null);
         setIsProfileOpen(false);
         
         window.dispatchEvent(new CustomEvent("authStateChanged"));
         router.push("/");
       } else {
-        throw new Error("Logout failed");
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Logout failed with response:", res.status, errorData);
+        throw new Error(`Logout failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
     } catch (error) {
       console.error("Sign out failed:", error);
       
+      
       setUser(null);
       setIsProfileOpen(false);
       window.dispatchEvent(new CustomEvent("authStateChanged"));
-      router.push ("/");
+      router.push("/");
     }
   };
 
@@ -230,6 +238,53 @@ export default function Header() {
         </div>
       );
     }
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
     
     return (

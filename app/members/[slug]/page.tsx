@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { familyMembers } from "@/data/family";
 import FullProfilePageClient from "@/components/profile/FullProfilePage";
-import { Member } from "@/types/member";
+import { Member } from "@/app/types/member";
 
 interface PageProps {
   params: { slug: string };
@@ -21,8 +21,8 @@ const createMemberData = (raw: any): Member => ({
   image: raw.image || "",
   role: raw.role || "",
   relationship: raw.relationship || "",
-  bio: raw.bio || "",
-  fullBio: raw.fullBio || "",
+  fullBio: raw.fullBio || raw.bio || "",
+  
   birthdate: raw.birthdate || "",
   favoriteQuote: raw.favoriteQuote || "",
   email: raw.email || "",
@@ -36,6 +36,7 @@ const createMemberData = (raw: any): Member => ({
           year: typeof item === "object" && item.year ? parseYear(item.year) : undefined
         }))
       : [],
+      
 
   achievements:
     raw.achievements && raw.achievements.length > 0
@@ -102,12 +103,15 @@ export default async function MemberPage({ params }: PageProps) {
     member.id = familyMembers.length + 1;
   }
 
-  if (fMember.education && member.education.length === 0) {
+  if (fMember.education && (member.education?.length === 0 || member.education === undefined)) {
     member.education = [{ title: "SEE", year: 2025 }];
   }
 
-  if (fMember.hobbies && member.hobbies.length === 0) {
+  if (fMember.hobbies && (member.hobbies?.length === 0 || member.hobbies === undefined)) {
     member.hobbies = ["Reading", "Traveling"];
+  }
+  if (fMember.skills && (member.skills?.length === 0 || member.skills === undefined)){
+    member.skills =["Communication", "Problem Solving"];
   }
 
   if (!member.name || !member.slug) return notFound();
@@ -116,3 +120,4 @@ export default async function MemberPage({ params }: PageProps) {
 
   return <FullProfilePageClient member={member} />;
 }
+

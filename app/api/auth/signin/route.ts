@@ -4,6 +4,16 @@ import bcrypt from 'bcryptjs';
 import { familyMembers } from '@/data/family';
 import { setAuthCookie } from '@/lib/auth';
 
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -15,6 +25,8 @@ export async function POST(req: NextRequest) {
         Member: true
       }
     });
+    
+    
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
@@ -25,15 +37,39 @@ export async function POST(req: NextRequest) {
     }
 
     
-    let slug = null;
-    if (user.Member && user.Member.length > 0) {
-      slug = user.Member[0].slug;
-    } else {
+    let member = null;
+    if (!user.Member || user.Member.length === 0) {
+      const slug = generateSlug(user.name || email.split('@')[0]);
       
-      const member = familyMembers.find(m => m.email?.toLowerCase() === email.toLowerCase());
-      slug = member ? member.slug : null;
+      const memberData = {
+        slug: slug,
+        name: user.name || email.split('@')[0],
+        email: user.email,
+        image: '/images/default-avatar.png',
+        role: 'Family Member',
+        relationship: 'User',
+        fullBio: `Member profile for ${user.name || email.split('@')[0]}`,
+        personality: [],
+        achievements: [],
+      };
+      
+      let uniqueSlug = slug;
+      let counter = 1;
+      while (await prisma.member.findUnique({ where: { slug: uniqueSlug } })) {
+        uniqueSlug = `${slug}-${counter}`;
+        counter++;
+      }
+      
+      member = await prisma.member.create({
+        data: {
+          ...memberData,
+          slug: uniqueSlug,
+          userId: user.id
+        }
+      });
+    } else {
+      member = user.Member[0];
     }
-
     
     const payload: any = {
       id: user.id.toString(),
@@ -53,7 +89,7 @@ export async function POST(req: NextRequest) {
       user: {
         email: user.email,
         name: user.name,
-        slug: slug
+        slug: member.slug
       }
     }, { status: 200 });
   } catch (error) {

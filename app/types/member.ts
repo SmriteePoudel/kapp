@@ -2,7 +2,7 @@
 
 
 export interface Member {
-  id?: string;
+  id?: number;
   slug: string;
   name: string;
   image: string;
@@ -12,23 +12,15 @@ export interface Member {
   email?: string;
   phone?: string;
   address?: string;
-  
-  
+  birthdate?: string;
+  favoriteQuote?: string;
   skills?: string[];
   languages?: string[];
   hobbies?: string[];
-  
-  
   personality?: string[] | { title: string }[];
-  
-  
   achievements?: { title: string; year?: number }[];
   education?: { title: string; year?: number }[];
-  
-  
   career?: string[] | { title: string; company?: string; year?: number }[];
-  
- 
   createdAt?: string;
   updatedAt?: string;
 }

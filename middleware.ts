@@ -27,9 +27,13 @@ export function middleware(request: NextRequest) {
     const publicApiRoutes = [
       '/api/auth/signin',
       '/api/auth/register',
+      '/api/auth/logout',
+      '/api/auth/signout',
       '/api/members',
       '/api/featured',
-      '/api/portfolio'
+      '/api/portfolio',
+      '/api/test-auth',
+      '/api/auth/home',
     ];
     
     const isPublicRoute = publicApiRoutes.some(route => 

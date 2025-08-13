@@ -2,7 +2,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { familyMembers } from '@/data/family';
-import type { Member } from '@/types/member';
 import prisma from '@/lib/prisma';
 export async function PUT(
   request: NextRequest,

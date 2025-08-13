@@ -28,8 +28,11 @@ export function verifyToken(token: string): JwtPayload | null {
 }
 
 
-export function getAuthToken(request: NextRequest): string | undefined {
-  return request.cookies.get(TOKEN_NAME)?.value;
+export  function getAuthToken(request: NextRequest): string | undefined {
+  const token = request.cookies.get(TOKEN_NAME)?.value;
+
+ //  return token ? token.value : undefined;
+ return token;
 }
 
 
@@ -46,11 +49,17 @@ export async function setAuthCookie(payload: JwtPayload): Promise<void> {
 
 
 export async function clearAuthCookie(): Promise<void> {
-  (await cookies()).set(TOKEN_NAME, '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 0,
-    path: '/',
-    sameSite: 'strict',
-  });
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(TOKEN_NAME, '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 0,
+      path: '/',
+      sameSite: 'strict',
+    });
+  } catch (error) {
+    console.error("Error clearing auth cookie:", error);
+    throw error;
+  }
 }

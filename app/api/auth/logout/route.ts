@@ -3,9 +3,12 @@ import { clearAuthCookie } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("Logout request received");
     await clearAuthCookie();
+    console.log("Auth cookie cleared successfully");
     return NextResponse.json({ message: 'Logged out successfully' });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to logout' }, { status: 500 });
+    console.error("Logout error:", error);
+    return NextResponse.json({ error: 'Failed to log out' }, { status: 500 });
   }
 }

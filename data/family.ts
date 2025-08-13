@@ -1,6 +1,6 @@
 // ... other interfaces ...
 
-import { Member } from "@/types/member";
+import { Member } from "@/app/types/member";
 
 export interface FamilyMember {
   id: number;

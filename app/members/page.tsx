@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { Users, HeartHandshake, Baby, ChevronRight } from "lucide-react";
+import { Users, HeartHandshake, Baby, ChevronRight, User } from "lucide-react";
 import { familyMembers, FamilyMember } from "@/data/family";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 const categories = [
   { id: "all", label: "All Members", icon: Users },
@@ -16,11 +18,12 @@ const categories = [
 
 export default function MembersPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const { user, loading } = useAuth();
 
   const filteredMembers = familyMembers.filter((member: FamilyMember) => {
     if (selectedCategory === "parents") return member.generation === 2;
     if (selectedCategory === "children") return member.generation === 3;
-    return true; 
+    return true;
   });
 
   return (
@@ -39,6 +42,51 @@ export default function MembersPage() {
             Meet the wonderful individuals who make up the Khanal family tree.
           </p>
         </motion.div>
+
+        
+        {user && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12"
+          >
+            <div className="border-2 border-rose-500 dark:border-rose-400 rounded-xl p-6 bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-900/20 dark:to-amber-900/20 shadow-lg">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center text-white text-xl font-semibold shadow-lg">
+                  {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    {user.name || user.email.split('@')[0]}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Welcome back! You're part of the Khanal family.
+                  </p>
+                </div>
+              </div>
+
+
+
+
+
+
+
+
+
+
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm rounded-full">
+                  Current User
+                </span>
+                {user.roles && user.roles.map((role) => (
+                  <span key={role} className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-sm rounded-full">
+                    {role}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         
         <motion.div
