@@ -23,11 +23,7 @@ import {
 } from "lucide-react";
 import type { Member } from "@/app/types/member";
 
-interface Props {
-  member: Member;
-}
-
-export default function ProfileEditor({ member }: Props) {
+export default function ProfileEditor({ member }: any) {
   const [profile, setProfile] = useState<Member>(member);
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
   const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
@@ -76,6 +72,7 @@ export default function ProfileEditor({ member }: Props) {
       title: profile.name,
       text: profile.fullBio || "",
       url: window.location.href,
+      
     };
     try {
       if (navigator.share) {

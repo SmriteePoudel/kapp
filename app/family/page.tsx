@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { familyMembers } from '../../data/family';
@@ -13,6 +14,34 @@ import {
 } from "lucide-react";
 
 export default function FamilyPage() {
+  const [allMembers, setAllMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        
+        const response = await fetch('/api/members');
+        const result = await response.json();
+        
+        if (result.success) {
+          
+          setAllMembers([...familyMembers, ...result.data]);
+        } else {
+          
+          setAllMembers(familyMembers);
+        }
+      } catch (error) {
+        console.error('Error fetching members:', error);
+        
+        setAllMembers(familyMembers);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
 
   const familyTimeline = [
     {
@@ -41,6 +70,17 @@ export default function FamilyPage() {
       description: "First grandchildren born",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-slate-900 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto"></div>
+          <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">Loading family members...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -83,9 +123,9 @@ export default function FamilyPage() {
               </p>
             </motion.div>
             <div className="relative flex flex-col items-center space-y-12">
-              {familyMembers.map((member) => (
+              {allMembers.map((member: any) => (
                 <motion.div
-                  key={member.name}
+                  key={`member-${member.id}-${member.name}`}
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
                   viewport={{ once: true, margin: "100px" }}
@@ -108,9 +148,11 @@ export default function FamilyPage() {
                       <p className="text-sm md:text-base text-slate-600 dark:text-slate-300">
                         {member.role}
                       </p>
-                      <span className="inline-block mt-2 px-3 py-1 text-xs md:text-sm bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full">
-                        {member.generation} Generation
-                      </span>
+                      {member.generation !== undefined && (
+                        <span className="inline-block mt-2 px-3 py-1 text-xs md:text-sm bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full">
+                          {member.generation} Generation
+                        </span>
+                      )}
                     </div>
                   </div>
                 </motion.div>

@@ -82,8 +82,18 @@ export default function FamilyTreePage() {
     const loadFamilyData = async () => {
       try {
         setLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const familyData = buildFamilyTree(familyMembers);
+        // Fetch database members
+        const response = await fetch('/api/members');
+        const result = await response.json();
+        
+        let allMembers = [...familyMembers];
+        
+        if (result.success) {
+          // Combine static family members with database members
+          allMembers = [...familyMembers, ...result.data];
+        }
+        
+        const familyData = buildFamilyTree(allMembers);
         setMembers(familyData);
       } catch (err) {
         setError(
@@ -432,7 +442,7 @@ export default function FamilyTreePage() {
           <MapSection />
           <div className="text-center mt-16 py-8 border-t border-slate-200 dark:border-slate-700">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Family data shared with consent • Living member&apos;s information
+              Family data shared with consent • Living member's information
               protected
             </p>
           </div>

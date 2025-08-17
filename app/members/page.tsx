@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, HeartHandshake, Baby, ChevronRight, User } from "lucide-react";
 import { familyMembers, FamilyMember } from "@/data/family";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 
 const categories = [
@@ -18,13 +17,52 @@ const categories = [
 
 export default function MembersPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { user, loading } = useAuth();
+  const [allMembers, setAllMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
-  const filteredMembers = familyMembers.filter((member: FamilyMember) => {
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        
+        const response = await fetch('/api/members');
+        const result = await response.json();
+        
+        if (result.success) {
+          
+          setAllMembers([...familyMembers, ...result.data]);
+        } else {
+          
+          setAllMembers(familyMembers);
+        }
+      } catch (error) {
+        console.error('Error fetching members:', error);
+        
+        setAllMembers(familyMembers);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
+
+  const filteredMembers = allMembers.filter((member: any) => {
     if (selectedCategory === "parents") return member.generation === 2;
     if (selectedCategory === "children") return member.generation === 3;
     return true;
   });
+
+  if (loading || authLoading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-slate-900 py-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto"></div>
+          <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">Loading family members...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-20 bg-white dark:bg-slate-900 min-h-screen">
@@ -64,15 +102,6 @@ export default function MembersPage() {
                   </p>
                 </div>
               </div>
-
-
-
-
-
-
-
-
-
 
               <div className="flex flex-wrap gap-2">
                 <span className="px-3 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm rounded-full">
@@ -117,9 +146,9 @@ export default function MembersPage() {
 
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredMembers.map((member) => (
+          {filteredMembers.map((member: any) => (
             <motion.div
-              key={member.id}
+              key={`member-${member.id}-${member.name}`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
@@ -146,12 +175,14 @@ export default function MembersPage() {
                   <span className="px-3 py-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-sm rounded-full">
                     {member.role}
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400 text-sm">
-                    {member.birthDate}
-                  </span>
+                  {member.birthDate && (
+                    <span className="text-slate-500 dark:text-slate-400 text-sm">
+                      {member.birthDate}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-                  {member.bio}
+                  {member.bio || member.fullBio}
                 </p>
 
                 

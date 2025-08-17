@@ -57,10 +57,42 @@ export interface FamilyPhoto {
   memberIds: number[];
 }
 
-// ... other data ...
+
 
 export const familyMembers: FamilyMember[] = [
-  // Generation 1 (Grandparents)
+ 
+  {
+    id: 11,
+    name: "Smri Khanal",
+    role: "Young Family Member",
+    parentIds: [],
+    spouseId: null,
+    birthDate: "2005-06-15",
+    deathDate: null,
+    image: "/images/girl.webp",
+    bio: "A young and vibrant member of the Khanal family with exciting potential.",
+    slug: "smri-khanal",
+    generation: 0,
+    fullBio: "Smri is a young and vibrant member of the Khanal family. She brings fresh energy and new perspectives to our family traditions while embracing modern values. As a student, she's passionate about learning and contributing to the family's future.",
+    birthdate: "2005-06-15",
+    relationship: "Young Family Member",
+    email: "smri.khanal@khanalfamily.com",
+    phone: "+977-9841234572",
+    address: "Pokhara, Nepal",
+    education: ["High School Graduate", "Computer Science Student"],
+    career: ["Student", "Part-time Developer"],
+    hobbies: ["Coding", "Photography", "Hiking"],
+    achievements: ["Academic Excellence Award", "Community Volunteer"],
+    favoriteQuote: "The future belongs to those who believe in the beauty of their dreams",
+    personalityTraits: ["Innovative", "Curious", "Helpful"],
+    skills: ["Programming", "Digital Marketing", "Problem Solving"],
+    languages: ["Nepali", "English", "Hindi"],
+    socialLinks: {
+      facebook: "smri.khanal",
+      instagram: "@smrikhanal",
+      twitter: "@smrikhanal"
+    }
+  },
   {
     id: 1,
     name: "Ram Bahadur Khanal",
@@ -69,7 +101,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: 2,
     birthDate: "1940-01-15",
     deathDate: "2020-12-10",
-    image: "/images/oldman3.png",
+    image: "/images/oldman.webp",
     bio: "Founding patriarch of the Khanal family, dedicated farmer and community leader.",
     slug: "ram-bahadur-khanal",
     generation: 1,
@@ -101,7 +133,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: 1,
     birthDate: "1945-03-20",
     deathDate: null,
-    image: "/images/oldwoman3.webp",
+    image: "/images/oldwoman.webp",
     bio: "Beloved matriarch, devoted mother and grandmother who kept the family united.",
     slug: "sita-devi-khanal",
     generation: 1,
@@ -167,7 +199,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: 3,
     birthDate: "1975-08-18",
     deathDate: null,
-    image: "/images/oldwoman4.webp",
+    image: "/images/olwoman2.webp",
     bio: "Dedicated teacher and loving mother of three children.",
     slug: "kamala-khanal",
     generation: 2,
@@ -200,7 +232,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: 6,
     birthDate: "1972-11-25",
     deathDate: null,
-    image: "/images/oldman5.webp",
+    image: "/images/man4.webp",
     bio: "Engineer working abroad, maintains strong family connections.",
     slug: "suresh-khanal",
     generation: 2,
@@ -233,7 +265,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: 5,
     birthDate: "1976-02-14",
     deathDate: null,
-    image: "/images/oldwoman5.webp",
+    image: "/images/oldwoman6.webp",
     bio: "Healthcare professional and community volunteer.",
     slug: "radha-khanal",
     generation: 2,
@@ -267,7 +299,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: null,
     birthDate: "2000-07-10",
     deathDate: null,
-    image: "/images/space.png",
+    image: "/images/evie.png",
     bio: "University student studying computer science, passionate about technology.",
     slug: "arjun-khanal",
     generation: 3,
@@ -300,7 +332,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: null,
     birthDate: "2002-12-05",
     deathDate: null,
-    image: "/images/Hemjakot.png",
+    image: "/images/cartoon.webp",
     bio: "High school student with interests in arts and literature.",
     slug: "priya-khanal",
     generation: 3,
@@ -332,7 +364,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: null,
     birthDate: "2001-09-22",
     deathDate: null,
-    image: "/images/woman7.webp",
+    image: "/images/cooking.png",
     bio: "Medical student following in her mother's footsteps in healthcare.",
     slug: "anita-khanal",
     generation: 3,
@@ -365,7 +397,7 @@ export const familyMembers: FamilyMember[] = [
     spouseId: null,
     birthDate: "2003-04-16",
     deathDate: null,
-    image: "/images/man4.webp",
+    image: "/images/brandon.png",
     bio: "Young entrepreneur with innovative ideas for sustainable farming.",
     slug: "bikash-khanal",
     generation: 3,
@@ -468,15 +500,15 @@ export const featuredStories: FeaturedStory[] = [
   },
 ];
 
-// ... other data ...
+
 
 export const members: Member[] = [
-  // ... member data ...
+  
 ];
 
-// Helper function to build family tree structure
+
 export function buildFamilyTree(members: FamilyMember[]) {
-  // Add children arrays to each member
+  
   const membersWithChildren = members.map((member) => ({
     ...member,
     children: members.filter((child) => child.parentIds.includes(member.id)).map((child) => child.id),

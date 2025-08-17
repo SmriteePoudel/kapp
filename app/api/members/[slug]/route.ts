@@ -1,8 +1,17 @@
-
-
 import { NextRequest, NextResponse } from 'next/server';
 import { familyMembers } from '@/data/family';
 import prisma from '@/lib/prisma';
+import { getAuthToken, verifyToken } from '@/lib/auth';
+
+async function resolveSlug(slug:string,request:NextRequest){
+  if (slug !== 'me')return slug;
+  const session = await getServerSession(request);
+  if (!session?.user?.slug){
+    throw new Error('Not authenticated');
+  }
+  return session.user.slug;
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -35,8 +44,11 @@ export async function PUT(
     }
 
     
+    const resolvedSlug = await resolveSlug(slug, request);
+
+    
     let dbMember = await prisma.member.findUnique({
-      where: { slug: slug },
+      where: { slug: resolvedSlug },
     });
 
     
@@ -183,6 +195,7 @@ export async function PUT(
     
     const updatedMember = {
       ...updatedMemberWithRelations,
+      image: updatedMemberWithRelations?.image || '/images/oldman.webp',
       education: updatedMemberWithRelations?.Education.map(edu => ({ title: edu.title, year: edu.startYear })) || [],
       achievements: updatedMemberWithRelations?.Achievement.map(ach => ({ title: ach.title, year: ach.date ? new Date(ach.date).getFullYear() : undefined })) || [],
       career: updatedMemberWithRelations?.career || [],
@@ -228,8 +241,11 @@ export async function GET(
     }
 
     
+    const resolvedSlug = await resolveSlug(slug, request);
+
+    
     const dbMember = await prisma.member.findUnique({
-      where: { slug: slug },
+      where: { slug: resolvedSlug },
       include: {
         Achievement: true,
         Education: true,
@@ -240,6 +256,7 @@ export async function GET(
       
       const member = {
         ...dbMember,
+        image: dbMember.image || '/images/oldman.webp',
         education: dbMember.Education.map(edu => ({ title: edu.title, year: edu.startYear })),
         achievements: dbMember.Achievement.map(ach => ({ title: ach.title, year: ach.date ? new Date(ach.date).getFullYear() : undefined })),
         career: dbMember.career || [],
@@ -287,4 +304,38 @@ export async function GET(
       { status: 500 }
     );
   }
+}
+
+async function getServerSession(request: NextRequest) {
+  const token = getAuthToken(request);
+  if (!token) {
+    console.log('No token found in request');
+    return null;
+  }
+  
+  const payload = verifyToken(token);
+  if (!payload) {
+    console.log('Invalid token');
+    return null;
+  }
+  
+  console.log('Token payload:', payload);
+  
+  
+  const member = await prisma.member.findFirst({
+    where: {
+      userId: parseInt(payload.id, 10)
+    }
+  });
+  
+  console.log('Member found for userId', payload.id, ':', member);
+  
+  return {
+    user: {
+      id: payload.id,
+      email: payload.email,
+      name: payload.name,
+      slug: member?.slug
+    }
+  };
 }

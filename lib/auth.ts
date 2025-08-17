@@ -31,8 +31,7 @@ export function verifyToken(token: string): JwtPayload | null {
 export  function getAuthToken(request: NextRequest): string | undefined {
   const token = request.cookies.get(TOKEN_NAME)?.value;
 
- //  return token ? token.value : undefined;
- return token;
+  return token;
 }
 
 
