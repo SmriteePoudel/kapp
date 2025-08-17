@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -23,7 +24,8 @@ import {
 } from "lucide-react";
 import type { Member } from "@/app/types/member";
 
-export default function ProfileEditor({ member }: any) {
+
+export default function ProfileEditor({ member }: { member: Member }) {
   const [profile, setProfile] = useState<Member>(member);
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
   const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
@@ -72,7 +74,7 @@ export default function ProfileEditor({ member }: any) {
       title: profile.name,
       text: profile.fullBio || "",
       url: window.location.href,
-      
+
     };
     try {
       if (navigator.share) {
@@ -206,14 +208,14 @@ export default function ProfileEditor({ member }: any) {
                 Array.isArray(profile.education)
                   ? profile.education.map((item) =>
                       typeof item === "object"
-                        ? (item as { title: string; year?: number })
+                        ? (item as { title: string; startYear?: number; endYear?: number })
                         : { title: item as string }
                     )
                   : []
               }
               isEditing={editingSections.education || false}
               isSaving={savingSections.education || false}
-              onChange={(val: { title: string; year?: number }[]) =>
+              onChange={(val: { title: string; startYear?: number; endYear?: number }[]) =>
                 handleFieldChange("education", val)
               }
               onEdit={(editing) => handleSectionEdit('education', editing)}
@@ -227,14 +229,14 @@ export default function ProfileEditor({ member }: any) {
                 Array.isArray(profile.achievements)
                   ? profile.achievements.map((item) =>
                       typeof item === "object"
-                        ? (item as { title: string; year?: number })
+                        ? (item as { title: string; startYear?: number; endYear?: number })
                         : { title: item as string }
                     )
                   : []
               }
               isEditing={editingSections.achievements || false}
               isSaving={savingSections.achievements || false}
-              onChange={(val: { title: string; year?: number }[]) =>
+              onChange={(val: { title: string; startYear?: number; endYear?: number }[]) =>
                 handleFieldChange("achievements", val)
               }
               onEdit={(editing) => handleSectionEdit('achievements', editing)}
@@ -401,24 +403,24 @@ function EditableListWithYearSection({
 }: {
   title: string;
   icon: React.ReactNode;
-  items: { title: string; year?: number }[];
+  items: { title: string; startYear?: number; endYear?: number }[];
   isEditing: boolean;
   isSaving: boolean;
-  onChange: (items: { title: string; year?: number }[]) => void;
+  onChange: (items: { title: string; startYear?: number; endYear?: number }[]) => void;
   onEdit: (editing: boolean) => void;
   onSave: () => void;
 }) {
-  const handleChange = (index: number, key: "title" | "year", value: string) => {
+  const handleChange = (index: number, key: "title" | "startYear" | "endYear", value: string) => {
     const updated = [...items];
-    if (key === "year") {
-      updated[index] = { ...updated[index], year: value === "" ? undefined : Number(value) };
+    if (key === "startYear" || key === "endYear") {
+      updated[index] = { ...updated[index], [key]: value === "" ? undefined : Number(value) };
     } else {
       updated[index] = { ...updated[index], title: value };
     }
-    onChange(updated as { title: string; year?: number }[]);
+    onChange(updated);
   };
 
-  const handleAdd = () => onChange([...items, { title: "", year: undefined }]);
+  const handleAdd = () => onChange([...items, { title: "", startYear: undefined, endYear: undefined }]);
   const handleRemove = (index: number) => onChange(items.filter((_, i) => i !== index));
 
   return (
@@ -454,10 +456,16 @@ function EditableListWithYearSection({
                 placeholder="Title"
               />
               <input
-                value={item.year ?? ""}
-                onChange={(e) => handleChange(index, "year", e.target.value)}
-                className="border p-1 rounded w-24"
-                placeholder="Year"
+                value={item.startYear ?? ""}
+                onChange={(e) => handleChange(index, "startYear", e.target.value)}
+                className="border p-1 rounded w-20"
+                placeholder="Start"
+              />
+              <input
+                value={item.endYear ?? ""}
+                onChange={(e) => handleChange(index, "endYear", e.target.value)}
+                className="border p-1 rounded w-20"
+                placeholder="End"
               />
               <Button size="icon" variant="ghost" onClick={() => handleRemove(index)}>
                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -465,7 +473,7 @@ function EditableListWithYearSection({
             </>
           ) : (
             <p>
-              • {item.title} {item.year && `(${item.year})`}
+              • {item.title} {item.startYear && `${item.startYear}`} {item.endYear && ` - ${item.endYear}`}
             </p>
           )}
         </div>

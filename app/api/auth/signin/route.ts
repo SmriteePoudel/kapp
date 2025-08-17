@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         slug: slug,
         name: user.name || email.split('@')[0],
         email: user.email,
-        image: '/images/default-avatar.png',
+        image: '/images/family1.png',
         role: 'Family Member',
         relationship: 'User',
         fullBio: `Member profile for ${user.name || email.split('@')[0]}`,

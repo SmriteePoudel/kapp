@@ -123,7 +123,8 @@ export async function PUT(
       
       const educationData = updateData.education.map((edu: any) => ({
         title: typeof edu === 'string' ? edu : edu.title,
-        startYear: typeof edu === 'object' && edu.year ? Number(edu.year) : 0,
+        startYear: typeof edu === 'object' && edu.startYear ? Number(edu.startYear) : null,
+        endYear: typeof edu === 'object' && edu.endYear ? Number(edu.endYear) : null,
         memberId: dbMember.id,
       })).filter((edu: any) => edu.title);
       
@@ -196,7 +197,11 @@ export async function PUT(
     const updatedMember = {
       ...updatedMemberWithRelations,
       image: updatedMemberWithRelations?.image || '/images/oldman.webp',
-      education: updatedMemberWithRelations?.Education.map(edu => ({ title: edu.title, year: edu.startYear })) || [],
+      education: updatedMemberWithRelations?.Education.map(edu => ({
+        title: edu.title,
+        startYear: edu.startYear,
+        endYear: edu.endYear
+      })) || [],
       achievements: updatedMemberWithRelations?.Achievement.map(ach => ({ title: ach.title, year: ach.date ? new Date(ach.date).getFullYear() : undefined })) || [],
       career: updatedMemberWithRelations?.career || [],
       skills: updatedMemberWithRelations?.skills || [],
@@ -257,7 +262,11 @@ export async function GET(
       const member = {
         ...dbMember,
         image: dbMember.image || '/images/oldman.webp',
-        education: dbMember.Education.map(edu => ({ title: edu.title, year: edu.startYear })),
+        education: dbMember.Education.map(edu => ({
+          title: edu.title,
+          startYear: edu.startYear,
+          endYear: edu.endYear
+        })),
         achievements: dbMember.Achievement.map(ach => ({ title: ach.title, year: ach.date ? new Date(ach.date).getFullYear() : undefined })),
         career: dbMember.career || [],
         skills: dbMember.skills || [],

@@ -33,7 +33,7 @@ const createMemberData = (raw: any): Member => ({
     raw.education && raw.education.length > 0
       ? raw.education.map((item: any) => ({
           title: typeof item === "string" ? item : item.title || "",
-          year: typeof item === "object" && item.year ? parseYear(item.year) : undefined
+          endYear: typeof item === "object" && item.year ? parseYear(item.year) : undefined
         }))
       : [],
       
@@ -104,7 +104,7 @@ export default async function MemberPage({ params }: PageProps) {
   }
 
   if (fMember.education && (member.education?.length === 0 || member.education === undefined)) {
-    member.education = [{ title: "SEE", year: 2025 }];
+    member.education = [{ title: "SEE", endYear: 2025 }];
   }
 
   if (fMember.hobbies && (member.hobbies?.length === 0 || member.hobbies === undefined)) {

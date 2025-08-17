@@ -19,7 +19,7 @@ export interface Member {
   hobbies?: string[];
   personality?: string[] | { title: string }[];
   achievements?: { title: string; year?: number }[];
-  education?: { title: string; year?: number }[];
+  education?: { title: string; startYear?: number; endYear?: number }[];
   career?: string[] | { title: string; company?: string; year?: number }[];
   createdAt?: string;
   updatedAt?: string;
@@ -46,7 +46,7 @@ export interface FamilyMember {
   
   
   achievements?: { title: string; year?: number }[];
-  education?: { title: string; year?: number }[];
+  education?: { title: string; startYear?: number; endYear?: number }[];
   career?: string[] | { title: string; company?: string; year?: number }[];
 }
 
@@ -73,6 +73,6 @@ export interface MemberUpdate {
   hobbies?: string[];
   personality?: string[] | { title: string }[];
   achievements?: { title: string; year?: number }[];
-  education?: { title: string; year?: number }[];
+  education?: { title: string; startYear?: number; endYear?: number }[];
   career?: string[] | { title: string; company?: string; year?: number }[];
 }
