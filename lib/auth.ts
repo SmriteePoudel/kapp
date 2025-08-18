@@ -4,13 +4,13 @@ import { NextRequest } from 'next/server';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const TOKEN_NAME = 'auth-token';
-const TOKEN_DURATION = 60 * 60 * 24 * 7; // 7 days
+const TOKEN_DURATION = 60 * 60 * 24 * 7; 
 
 export interface JwtPayload {
   id: string;
   email: string;
   name?: string;
-  roles: string[];
+  
 }
 
 
