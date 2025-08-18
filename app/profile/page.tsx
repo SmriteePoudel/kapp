@@ -32,7 +32,7 @@ export default function ProfilePage() {
                 image: "/images/family1.png",
                 role: "Family Member",
                 relationship: "User",
-                email: user.email,
+                email: user.email? [user.email]:[],
                 fullBio: `Welcome ${user.name || user.email.split("@")[0]}! This is your personal profile page.`,
                 skills: [],
                 languages: [],
@@ -42,8 +42,8 @@ export default function ProfilePage() {
                 education: [],
                 career: [],
                 id: 0,
-                phone: "",
-                address: ""
+                phone: [],
+                address: [],
               };
               setMember(memberData);
             }

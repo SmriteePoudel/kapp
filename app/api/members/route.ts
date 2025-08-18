@@ -20,9 +20,9 @@ export async function GET() {
       role: dbMember.role || 'Family Member',
       relationship: dbMember.relationship || 'Member',
       fullBio: dbMember.fullBio || `Member profile for ${dbMember.name}`,
-      email: dbMember.email || '',
-      phone: dbMember.phone || '',
-      address: dbMember.address || '',
+      email: dbMember.email? [dbMember.email]:[],
+      phone: dbMember.phone? [dbMember.email]:[],
+      address: dbMember.address? [dbMember.address]: [] ,
       education: dbMember.Education.map(edu => ({
         title: edu.title,
         year: edu.startYear || undefined

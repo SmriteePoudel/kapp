@@ -9,8 +9,8 @@ export interface Member {
   role?: string;
   relationship?: string;
   fullBio?: string;
-  email?: string[];   
-  phone?: string[];
+  email?: string[]; 
+  phone?: string[];  
   address?: string[];
   birthdate?: string;
   favoriteQuote?: string;
@@ -65,9 +65,9 @@ export interface MemberUpdate {
   role?: string;
   relationship?: string;
   fullBio?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
+  email?: string[];
+  phone?: string[];
+  address?: string[];
   skills?: string[];
   languages?: string[];
   hobbies?: string[];
