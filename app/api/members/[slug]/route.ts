@@ -76,9 +76,9 @@ export async function PUT(
           role: originalMember.role,
           relationship: originalMember.relationship,
           fullBio: originalMember.fullBio,
-          email: originalMember.email,
-          phone: originalMember.phone,
-          address: originalMember.address,
+          email: Array.isArray(originalMember.email) ? originalMember.email : [originalMember.email].filter(Boolean),
+          phone: Array.isArray(originalMember.phone) ? originalMember.phone : [originalMember.phone].filter(Boolean),
+          address: Array.isArray(originalMember.address) ? originalMember.address : [originalMember.address].filter(Boolean),
           career: originalMember.career,
           skills: originalMember.skills,
           languages: originalMember.languages,
@@ -328,7 +328,6 @@ async function getServerSession(request: NextRequest) {
     return null;
   }
   
-  console.log('Token payload:', payload);
   
   
   const member = await prisma.member.findFirst({

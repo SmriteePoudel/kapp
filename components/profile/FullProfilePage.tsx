@@ -574,15 +574,40 @@ function ContactSection({
   profile: Member;
   isEditing: boolean;
   isSaving: boolean;
-  onFieldChange: (field: "email" | "phone" | "address", value: string) => void;
+  onFieldChange: <K extends keyof Member>(field: K, value: Member[K]) => void;
   onEdit: (editing: boolean) => void;
   onSave: () => void;
 }) {
   const fields = [
-    { label: "Email", key: "email" },
-    { label: "Phone", key: "phone" },
-    { label: "Address", key: "address" },
-  ] as const;
+    { label: "Email", key: "email" as const },
+    { label: "Phone", key: "phone" as const },
+    { label: "Address", key: "address" as const },
+  ];
+
+  // Handle change for a specific index in an array field
+  const handleArrayFieldChange = (
+    field: "email" | "phone" | "address",
+    index: number,
+    value: string
+  ) => {
+    const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
+    currentArray[index] = value;
+    onFieldChange(field, currentArray as any);
+  };
+
+  // Add a new empty item to an array field
+  const handleAddItem = (field: "email" | "phone" | "address") => {
+    const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
+    currentArray.push("");
+    onFieldChange(field, currentArray as any);
+  };
+
+  // Remove an item from an array field
+  const handleRemoveItem = (field: "email" | "phone" | "address", index: number) => {
+    const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
+    currentArray.splice(index, 1);
+    onFieldChange(field, currentArray as any);
+  };
 
   return (
     <div className="space-y-2">
@@ -607,13 +632,37 @@ function ContactSection({
         <div key={key}>
           <label className="block text-sm font-medium">{label}</label>
           {isEditing ? (
-            <input
-              value={profile[key] || ""}
-              onChange={(e) => onFieldChange(key, e.target.value)}
-              className="border rounded p-1 w-full"
-            />
+            <div className="space-y-2">
+              {(Array.isArray(profile[key]) ? profile[key] : []).map((value, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    value={value || ""}
+                    onChange={(e) => handleArrayFieldChange(key, index, e.target.value)}
+                    className="border rounded p-1 w-full"
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleRemoveItem(key, index)}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAddItem(key)}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add {label}
+              </Button>
+            </div>
           ) : (
-            <p>{profile[key]}</p>
+            <div>
+              {(Array.isArray(profile[key]) ? profile[key] : []).map((value, index) => (
+                <p key={index}>{value}</p>
+              ))}
+            </div>
           )}
         </div>
       ))}

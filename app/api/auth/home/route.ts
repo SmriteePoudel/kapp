@@ -4,7 +4,6 @@ import { verifyToken, getAuthToken } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     const token = getAuthToken(request);
-    console.log("Token from request:", token);
 
     if (!token) {
       return NextResponse.json({ user: null }, { status: 401 });

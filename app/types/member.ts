@@ -9,9 +9,9 @@ export interface Member {
   role?: string;
   relationship?: string;
   fullBio?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
+  email?: string[];   
+  phone?: string[];
+  address?: string[];
   birthdate?: string;
   favoriteQuote?: string;
   skills?: string[];

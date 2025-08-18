@@ -70,20 +70,21 @@ model UserRole {
 }
 
 model Member {
-  id                 Int             @id @default(autoincrement())
-  slug               String          @unique
-  name               String
-  userId             Int?            @unique
-  user               User?           @relation(fields: [userId], references: [id])
-  image              String?
-  role               String?
-  relationship       String?
-  spouseName         String?
-  children           String?
-  fullBio            String?
-  email              String?
-  phone              String?
-  address            String?
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  name         String
+  userId       Int?     @unique
+  user         User?    @relation(fields: [userId], references: [id])
+  image        String?
+  role         String?
+  relationship String?
+  spouseName   String?
+  children     String?
+  fullBio      String?
+  email        String[] @default([])
+  phone        String[] @default([])
+
+  address            String[]        @default([])
   ancestorsHierarchy String[]
   career             Json?
   skills             Json?
