@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, ChangeEvent} from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
@@ -25,10 +25,19 @@ import {
 } from "lucide-react";
 import type { Member } from "@/app/types/member";
 
+interface ImageUploadProps{
+  onImageUpload:(url: string)=> void;
+  currentImage?: string | null;
+}
+
+
 export default function ProfileEditor({ member }: { member: Member }) {
   const [profile, setProfile] = useState<Member>(member);
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
   const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  
+  
 
   const handleFieldChange = <K extends keyof Member>(field: K, value: Member[K]) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
@@ -52,6 +61,41 @@ export default function ProfileEditor({ member }: { member: Member }) {
     } catch (error) {
       console.error("Error in updateProfile:", error);
       throw error;
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setProfile(prev => ({
+          ...prev,
+          image: result.url
+        }));
+        
+        await updateProfile({
+          ...profile,
+          image: result.url
+        });
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -115,16 +159,36 @@ export default function ProfileEditor({ member }: { member: Member }) {
         >
           <div className="absolute inset-0 bg-black/20" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="relative">
-              <div className="w-48 h-48 rounded-full overflow-hidden ring-8 ring-white/30">
+            <div className="relative group">
+              <div className="w-48 h-48 rounded-full overflow-hidden ring-8 ring-white/30 relative">
                 <Image
-                  src={profile.image}
+                  src={profile.image || '/default-profile.png'}
                   alt={profile.name}
                   width={192}
                   height={192}
                   className="object-cover"
                 />
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <label className="cursor-pointer p-2 bg-white/80 rounded-full">
+                    <Edit3 className="w-6 h-6 text-gray-800" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          handleImageUpload(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
+              {isUploadingImage && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+                </div>
+              )}
             </div>
             <div className="text-center md:text-left text-white flex-1">
               <h1 className="text-4xl md:text-5xl font-bold mb-2">{profile.name}</h1>
@@ -139,16 +203,17 @@ export default function ProfileEditor({ member }: { member: Member }) {
                         className="text-xl p-1 rounded text-black w-full"
                         placeholder="Role"
                       />
-                      <input
-                        type="text"
-                        value={profile.relationship || ""}
-                        onChange={(e) => handleFieldChange("relationship", e.target.value)}
-                        className="text-xl p-1 rounded text-black w-full"
-                        placeholder="Relationship"
-                      />
+                      <p className="text-xl opacity-90 mb-4">
+                        {profile.relationship || "User"}
+                      </p>
                     </div>
                   ) : (
-                    <p className="text-xl opacity-90 mb-4">{profile.role}</p>
+                    <div>
+                      <p className="text-xl opacity-90 mb-2">{profile.role}</p>
+                      <p className="text-xl opacity-90 mb-4">
+                        {profile.relationship || "User"}
+                      </p>
+                    </div>
                   )}
                 </div>
                 <div className="ml-4">
@@ -792,5 +857,12 @@ function TagListSection({
         </Button>
       )}
     </div>
+
   );
+  
+  
+  
+
+
+
 }
