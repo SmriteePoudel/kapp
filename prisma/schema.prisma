@@ -15,8 +15,8 @@ model User {
 
   name String?
 
-  profilePic String?
-
+  profilePic    String?
+  role          String         @default("User")
   Member        Member[]
   Education     Education?
   careerJourney careerJourney?
@@ -76,7 +76,7 @@ model Member {
   userId       Int?     @unique
   user         User?    @relation(fields: [userId], references: [id])
   image        String?
-  role         String?
+  role         String   @default("User")
   relationship String?
   spouseName   String?
   children     String?

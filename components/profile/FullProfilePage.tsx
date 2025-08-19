@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -23,7 +24,6 @@ import {
   X,
 } from "lucide-react";
 import type { Member } from "@/app/types/member";
-
 
 export default function ProfileEditor({ member }: { member: Member }) {
   const [profile, setProfile] = useState<Member>(member);
@@ -74,7 +74,6 @@ export default function ProfileEditor({ member }: { member: Member }) {
       title: profile.name,
       text: profile.fullBio || "",
       url: window.location.href,
-
     };
     try {
       if (navigator.share) {
@@ -87,7 +86,6 @@ export default function ProfileEditor({ member }: { member: Member }) {
       console.error("Share failed:", err);
     }
   };
-  
 
   return (
     <motion.div
@@ -201,42 +199,42 @@ export default function ProfileEditor({ member }: { member: Member }) {
               onSave={() => handleSectionSave('about')}
             />
 
-            <EditableListWithYearSection
+            <EditableListWithDateSection
               title="Education"
               icon={<GraduationCap className="w-6 h-6 text-blue-500" />}
               items={
                 Array.isArray(profile.education)
                   ? profile.education.map((item) =>
                       typeof item === "object"
-                        ? (item as { title: string; startYear?: number; endYear?: number })
+                        ? (item as { title: string; startDate?: Date; endDate?: Date })
                         : { title: item as string }
                     )
                   : []
               }
               isEditing={editingSections.education || false}
               isSaving={savingSections.education || false}
-              onChange={(val: { title: string; startYear?: number; endYear?: number }[]) =>
+              onChange={(val: { title: string; startDate?: Date; endDate?: Date }[]) =>
                 handleFieldChange("education", val)
               }
               onEdit={(editing) => handleSectionEdit('education', editing)}
               onSave={() => handleSectionSave('education')}
             />
 
-            <EditableListWithYearSection
+            <EditableListWithDateSection
               title="Achievements"
               icon={<Trophy className="w-6 h-6 text-amber-500" />}
               items={
                 Array.isArray(profile.achievements)
                   ? profile.achievements.map((item) =>
                       typeof item === "object"
-                        ? (item as { title: string; startYear?: number; endYear?: number })
+                        ? (item as { title: string; startDate?: Date; endDate?: Date })
                         : { title: item as string }
                     )
                   : []
               }
               isEditing={editingSections.achievements || false}
               isSaving={savingSections.achievements || false}
-              onChange={(val: { title: string; startYear?: number; endYear?: number }[]) =>
+              onChange={(val: { title: string; startDate?: Date; endDate?: Date }[]) =>
                 handleFieldChange("achievements", val)
               }
               onEdit={(editing) => handleSectionEdit('achievements', editing)}
@@ -391,7 +389,7 @@ function Section({
   );
 }
 
-function EditableListWithYearSection({
+function EditableListWithDateSection({
   title,
   icon,
   items,
@@ -403,28 +401,38 @@ function EditableListWithYearSection({
 }: {
   title: string;
   icon: React.ReactNode;
-  items: { title: string; startYear?: number; endYear?: number }[];
+  items: { title: string; startDate?: Date; endDate?: Date }[];
   isEditing: boolean;
   isSaving: boolean;
-  onChange: (items: { title: string; startYear?: number; endYear?: number }[]) => void;
+  onChange: (items: { title: string; startDate?: Date; endDate?: Date }[]) => void;
   onEdit: (editing: boolean) => void;
   onSave: () => void;
 }) {
-  const handleChange = (index: number, key: "title" | "startYear" | "endYear", value: string) => {
+  const handleChange = (index: number, key: "title", value: string) => {
     const updated = [...items];
-    if (key === "startYear" || key === "endYear") {
-      updated[index] = { ...updated[index], [key]: value === "" ? undefined : Number(value) };
-    } else {
-      updated[index] = { ...updated[index], title: value };
-    }
+    updated[index] = { ...updated[index], title: value };
     onChange(updated);
   };
 
-  const handleAdd = () => onChange([...items, { title: "", startYear: undefined, endYear: undefined }]);
+  const handleDateChange = (index: number, key: "startDate" | "endDate", value: Date | null) => {
+    const updated = [...items];
+    updated[index] = { ...updated[index], [key]: value || undefined };
+    onChange(updated);
+  };
+
+  const handleAdd = () => onChange([...items, { title: "", startDate: undefined, endDate: undefined }]);
   const handleRemove = (index: number) => onChange(items.filter((_, i) => i !== index));
 
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return "";
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short' 
+    });
+  };
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           {icon}
@@ -445,42 +453,84 @@ function EditableListWithYearSection({
           </Button>
         )}
       </div>
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center gap-2">
-          {isEditing ? (
-            <>
-              <input
-                value={item.title}
-                onChange={(e) => handleChange(index, "title", e.target.value)}
-                className="border p-1 rounded flex-1"
-                placeholder="Title"
-              />
-              <input
-                value={item.startYear ?? ""}
-                onChange={(e) => handleChange(index, "startYear", e.target.value)}
-                className="border p-1 rounded w-20"
-                placeholder="Start"
-              />
-              <input
-                value={item.endYear ?? ""}
-                onChange={(e) => handleChange(index, "endYear", e.target.value)}
-                className="border p-1 rounded w-20"
-                placeholder="End"
-              />
-              <Button size="icon" variant="ghost" onClick={() => handleRemove(index)}>
-                <Trash2 className="w-4 h-4 text-red-500" />
-              </Button>
-            </>
-          ) : (
-            <p>
-              • {item.title} {item.startYear && `${item.startYear}`} {item.endYear && ` - ${item.endYear}`}
-            </p>
-          )}
-        </div>
-      ))}
+      
+      <div className="space-y-3">
+        {items.map((item, index) => (
+          <div key={index} className="border rounded-lg p-4 bg-white dark:bg-slate-800">
+            {isEditing ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    value={item.title}
+                    onChange={(e) => handleChange(index, "title", e.target.value)}
+                    className="border rounded p-2 flex-1 text-sm"
+                    placeholder="Title"
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => handleRemove(index)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Start Date
+                    </label>
+                    <DatePicker
+                      selected={item.startDate}
+                      onChange={(date) => handleDateChange(index, "startDate", date)}
+                      dateFormat="MM/yyyy"
+                      showMonthYearPicker
+                      placeholderText="Select start date"
+                      className="w-full border rounded p-2 text-sm"
+                      isClearable
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      End Date
+                    </label>
+                    <DatePicker
+                      selected={item.endDate}
+                      onChange={(date) => handleDateChange(index, "endDate", date)}
+                      dateFormat="MM/yyyy"
+                      showMonthYearPicker
+                      placeholderText="Select end date"
+                      className="w-full border rounded p-2 text-sm"
+                      isClearable
+                      minDate={item.startDate}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                  {item.title}
+                </h3>
+                {(item.startDate || item.endDate) && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {formatDate(item.startDate)} 
+                    {item.startDate && item.endDate && " - "} 
+                    {formatDate(item.endDate)}
+                    {item.startDate && !item.endDate && " - Present"}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
       {isEditing && (
-        <Button variant="outline" size="sm" onClick={handleAdd}>
-          <Plus className="w-4 h-4 mr-1" /> Add
+        <Button variant="outline" size="sm" onClick={handleAdd} className="w-full">
+          <Plus className="w-4 h-4 mr-2" /> Add {title.slice(0, -1)}
         </Button>
       )}
     </div>
@@ -584,7 +634,6 @@ function ContactSection({
     { label: "Address", key: "address" as const },
   ];
 
-  // Handle change for a specific index in an array field
   const handleArrayFieldChange = (
     field: "email" | "phone" | "address",
     index: number,
@@ -595,14 +644,12 @@ function ContactSection({
     onFieldChange(field, currentArray as any);
   };
 
-  // Add a new empty item to an array field
   const handleAddItem = (field: "email" | "phone" | "address") => {
     const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
     currentArray.push("");
     onFieldChange(field, currentArray as any);
   };
 
-  // Remove an item from an array field
   const handleRemoveItem = (field: "email" | "phone" | "address", index: number) => {
     const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
     currentArray.splice(index, 1);

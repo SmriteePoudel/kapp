@@ -1,5 +1,25 @@
-// types/member.ts
+// app/types/member.ts
 
+export interface Education {
+  title: string;
+  startDate?: Date;
+  endDate?: Date;
+  endYear?: number;
+}
+
+export interface Achievement {
+  title: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export interface CareerItem {
+  title: string;
+  company?: string;
+  startDate?: string;
+  endDate?: string;
+  year: number;
+}
 
 export interface Member {
   id?: number;
@@ -9,8 +29,8 @@ export interface Member {
   role?: string;
   relationship?: string;
   fullBio?: string;
-  
-  phone?: string[];  
+  email?: string[];          
+  phone?: string[];
   address?: string[];
   birthdate?: string;
   favoriteQuote?: string;
@@ -18,38 +38,18 @@ export interface Member {
   languages?: string[];
   hobbies?: string[];
   personality?: string[] | { title: string }[];
-  achievements?: { title: string; year?: number }[];
-  education?: { title: string; startYear?: number; endYear?: number }[];
-  career?: string[] | { title: string; company?: string; year?: number }[];
+
+  achievements?: Achievement[];
+  education?: Education[];
+  career?: string[] | CareerItem[];
+
   createdAt?: string;
   updatedAt?: string;
 }
 
-
-export interface FamilyMember {
+export interface FamilyMember extends Member {
   id: number;
-  slug: string;
-  name: string;
-  image: string;
-  role?: string;
-  relationship?: string;
-  fullBio?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  
-  
-  skills?: string[];
-  languages?: string[];
-  hobbies?: string[];
-  personality?: string[] | { title: string }[];
-  
-  
-  achievements?: { title: string; year?: number }[];
-  education?: { title: string; startYear?: number; endYear?: number }[];
-  career?: string[] | { title: string; company?: string; year?: number }[];
 }
-
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -57,7 +57,6 @@ export interface ApiResponse<T> {
   error?: string;
   message?: string;
 }
-
 
 export interface MemberUpdate {
   slug: string;
@@ -72,7 +71,7 @@ export interface MemberUpdate {
   languages?: string[];
   hobbies?: string[];
   personality?: string[] | { title: string }[];
-  achievements?: { title: string; year?: number }[];
-  education?: { title: string; startYear?: number; endYear?: number }[];
-  career?: string[] | { title: string; company?: string; year?: number }[];
+  achievements?: Achievement[];
+  education?: Education[];
+  career?: string[] | CareerItem[];
 }

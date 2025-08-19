@@ -4,13 +4,14 @@ import { NextRequest } from 'next/server';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const TOKEN_NAME = 'auth-token';
-const TOKEN_DURATION = 60 * 60 * 24 * 7; 
+const TOKEN_DURATION = 60 * 60 * 24 * 7; // 7 days
+
 
 export interface JwtPayload {
   id: string;
   email: string;
   name?: string;
-  
+  roles?: string[]; 
 }
 
 
@@ -28,9 +29,8 @@ export function verifyToken(token: string): JwtPayload | null {
 }
 
 
-export  function getAuthToken(request: NextRequest): string | undefined {
+export function getAuthToken(request: NextRequest): string | undefined {
   const token = request.cookies.get(TOKEN_NAME)?.value;
-
   return token;
 }
 
