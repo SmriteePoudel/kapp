@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, ChangeEvent } from "react";
+import React, { useState, useRef, useEffect, ChangeEvent } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
@@ -26,17 +26,21 @@ import {
 import type { Member } from "@/app/types/member";
 
 interface ImageUploadProps {
-  onImageUpload: (url: string) => void;
+  onImageUpload: (file: File) => Promise<void>;
   currentImage?: string | null;
+  loading: boolean;
 }
 
-function ImageUpload({ onImageUpload, currentImage }: ImageUploadProps) {
+function ImageUpload({ onImageUpload, currentImage, loading }: ImageUploadProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(
     currentImage || null
   );
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  
+  useEffect(() => {
+    setPreviewImage(currentImage || null);
+  }, [currentImage]);
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
@@ -46,52 +50,18 @@ function ImageUpload({ onImageUpload, currentImage }: ImageUploadProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+   
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result as string);
-    };
+    reader.onloadend = () => setPreviewImage(reader.result as string);
     reader.readAsDataURL(file);
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        headers:{
-          "Authorization ": `Bearer ${localStorage.getItem("token")}` ,
-          "Content-Type": "multipart/form-data"
-        },
-        body: formData,
-      });
-
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Unknown error");
-      }
-
-      const data = await response.json();
-      if (data?.url) {
-        onImageUpload(data.url);
-      } else {
-        throw new Error("No URL returned from server");
-      }
-    } catch (err: any) {
-      console.error("Upload failed:", err);
-      setError(err.message || "Upload failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    await onImageUpload(file);
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="relative group w-48 h-48">
       <div
-        className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 cursor-pointer relative"
+        className="w-48 h-48 rounded-full overflow-hidden ring-8 ring-white/30 relative bg-gray-200 cursor-pointer"
         onClick={triggerFileInput}
         role="button"
         aria-label="Upload profile photo"
@@ -108,44 +78,36 @@ function ImageUpload({ onImageUpload, currentImage }: ImageUploadProps) {
             <span>Upload Photo</span>
           </div>
         )}
+        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <label className="cursor-pointer p-2 bg-white/80 rounded-full">
+            <Edit3 className="w-6 h-6 text-gray-800" />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              disabled={loading}
+            />
+          </label>
+        </div>
       </div>
-
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleImageChange}
-        accept="image/*"
-        className="hidden"
-      />
-
-      <button
-        type="button"
-        onClick={triggerFileInput}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        disabled={loading}
-      >
-        {loading ? "Uploading..." : "Change Photo"}
-      </button>
-
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function ProfileEditor({ member }: { member: Member }) {
   const [profile, setProfile] = useState<Member>(member);
-  const [editingSections, setEditingSections] = useState<
-    Record<string, boolean>
-  >({});
-  const [savingSections, setSavingSections] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
+  const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const handleFieldChange = <K extends keyof Member>(
-    field: K,
-    value: Member[K]
-  ) => {
+  const handleFieldChange = <K extends keyof Member>(field: K, value: Member[K]) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -170,72 +132,53 @@ export default function ProfileEditor({ member }: { member: Member }) {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-  setIsUploadingImage(true);
-  try {
-    if (!file) {
-      console.error("No file provided");
-      return;
-    }
-
-    if (!file.name) {
-      console.error("File has no name");
-      return;
-    }
-
-    
-    let safeFileName = file.name
-      .replace(/\s+/g, "_")
-      .replace(/[^\w.-]/g, "")
-      .toLowerCase();
-
-    if (!safeFileName) {
-      const ext = file.name.split(".").pop() || "png";
-      safeFileName = `upload_${Date.now()}.${ext}`;
-    }
-
-    const safeFile = new File([file], safeFileName, { type: file.type });
-
-    const formData = new FormData();
-    formData.append("file", safeFile);
-
-    const token = localStorage.getItem("token");
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, 
-      },
-      body: formData,
-      credentials: "include",
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Upload failed");
-    }
-
-    return data.url;
-  } catch (err) {
-    console.error("Upload failed:", err);
-    alert("Image upload failed. Please try again.");
-    throw err;
-  } finally {
-    setIsUploadingImage(false);
-  }
-};
-
-  <input
-  type="file"
-  onChange={(e) => {
-    const file = e.target.files?.[0];
-    handleImageUpload(file!);
-  }}
-/>
-
-
-
   
+  const handleImageUpload = async (file: File) => {
+    setIsUploadingImage(true);
+    try {
+      if (!file) return;
+      let safeFileName = file.name.replace(/\s+/g, "_").replace(/[^\w.-]/g, "").toLowerCase();
+      if (!safeFileName) {
+        const ext = file.name.split(".").pop() || "png";
+        safeFileName = `upload_${Date.now()}.${ext}`;
+      }
+      const safeFile = new File([file], safeFileName, { type: file.type });
+      const formData = new FormData();
+      formData.append("file", safeFile);
+
+      
+      const token = localStorage.getItem("token");
+      if (!token) {
+        
+        setIsUploadingImage(false);
+        return;
+      }
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+         
+        },
+        body: formData,
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      setProfile((prev) => ({
+        ...prev,
+        image: data.url,
+      }));
+      
+      await updateProfile({ ...profile, image: data.url });
+    } catch (err: any) {
+      console.error("Upload failed:", err);
+      alert(err.message || "Image upload failed. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSectionEdit = (sectionName: string, isEditing: boolean) => {
     setEditingSections((prev) => ({ ...prev, [sectionName]: isEditing }));
@@ -297,37 +240,11 @@ export default function ProfileEditor({ member }: { member: Member }) {
         >
           <div className="absolute inset-0 bg-black/20" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="relative group">
-              <div className="w-48 h-48 rounded-full overflow-hidden ring-8 ring-white/30 relative">
-                <Image
-                  src={profile.image || "/default-profile.png"}
-                  alt={profile.name}
-                  width={192}
-                  height={192}
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <label className="cursor-pointer p-2 bg-white/80 rounded-full">
-                    <Edit3 className="w-6 h-6 text-gray-800" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) {
-                          handleImageUpload(e.target.files[0]);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-              {isUploadingImage && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-                </div>
-              )}
-            </div>
+            <ImageUpload
+              onImageUpload={handleImageUpload}
+              currentImage={profile.image}
+              loading={isUploadingImage}
+            />
             <div className="text-center md:text-left text-white flex-1">
               <h1 className="text-4xl md:text-5xl font-bold mb-2">
                 {profile.name}
@@ -339,9 +256,7 @@ export default function ProfileEditor({ member }: { member: Member }) {
                       <input
                         type="text"
                         value={profile.role || ""}
-                        onChange={(e) =>
-                          handleFieldChange("role", e.target.value)
-                        }
+                        onChange={(e) => handleFieldChange("role", e.target.value)}
                         className="text-xl p-1 rounded text-black w-full"
                         placeholder="Role"
                       />
@@ -565,6 +480,8 @@ export default function ProfileEditor({ member }: { member: Member }) {
   );
 }
 
+
+
 function Section({
   title,
   icon,
@@ -644,7 +561,6 @@ function EditableListWithDateSection({
     updated[index] = { ...updated[index], title: value };
     onChange(updated);
   };
-  
 
   const handleDateChange = (
     index: number,
