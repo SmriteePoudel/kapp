@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, ChangeEvent} from "react";
+import React, { useState, useRef, ChangeEvent } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
@@ -25,21 +25,127 @@ import {
 } from "lucide-react";
 import type { Member } from "@/app/types/member";
 
-interface ImageUploadProps{
-  onImageUpload:(url: string)=> void;
+interface ImageUploadProps {
+  onImageUpload: (url: string) => void;
   currentImage?: string | null;
 }
 
+function ImageUpload({ onImageUpload, currentImage }: ImageUploadProps) {
+  const [previewImage, setPreviewImage] = useState<string | null>(
+    currentImage || null
+  );
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        headers:{
+          "Authorization ": `Bearer ${localStorage.getItem("token")}` ,
+          "Content-Type": "multipart/form-data"
+        },
+        body: formData,
+      });
+
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Unknown error");
+      }
+
+      const data = await response.json();
+      if (data?.url) {
+        onImageUpload(data.url);
+      } else {
+        throw new Error("No URL returned from server");
+      }
+    } catch (err: any) {
+      console.error("Upload failed:", err);
+      setError(err.message || "Upload failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div
+        className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 cursor-pointer relative"
+        onClick={triggerFileInput}
+        role="button"
+        aria-label="Upload profile photo"
+      >
+        {previewImage ? (
+          <Image
+            src={previewImage}
+            alt="Profile preview"
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-500">
+            <span>Upload Photo</span>
+          </div>
+        )}
+      </div>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageChange}
+        accept="image/*"
+        className="hidden"
+      />
+
+      <button
+        type="button"
+        onClick={triggerFileInput}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+        disabled={loading}
+      >
+        {loading ? "Uploading..." : "Change Photo"}
+      </button>
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+    </div>
+  );
+}
 
 export default function ProfileEditor({ member }: { member: Member }) {
   const [profile, setProfile] = useState<Member>(member);
-  const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
-  const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
+  const [editingSections, setEditingSections] = useState<
+    Record<string, boolean>
+  >({});
+  const [savingSections, setSavingSections] = useState<Record<string, boolean>>(
+    {}
+  );
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  
-  
 
-  const handleFieldChange = <K extends keyof Member>(field: K, value: Member[K]) => {
+  const handleFieldChange = <K extends keyof Member>(
+    field: K,
+    value: Member[K]
+  ) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -65,51 +171,83 @@ export default function ProfileEditor({ member }: { member: Member }) {
   };
 
   const handleImageUpload = async (file: File) => {
-    setIsUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setProfile(prev => ({
-          ...prev,
-          image: result.url
-        }));
-        
-        await updateProfile({
-          ...profile,
-          image: result.url
-        });
-      }
-    } catch (error) {
-      console.error('Upload failed:', error);
-    } finally {
-      setIsUploadingImage(false);
+  setIsUploadingImage(true);
+  try {
+    if (!file) {
+      console.error("No file provided");
+      return;
     }
-  };
+
+    if (!file.name) {
+      console.error("File has no name");
+      return;
+    }
+
+    
+    let safeFileName = file.name
+      .replace(/\s+/g, "_")
+      .replace(/[^\w.-]/g, "")
+      .toLowerCase();
+
+    if (!safeFileName) {
+      const ext = file.name.split(".").pop() || "png";
+      safeFileName = `upload_${Date.now()}.${ext}`;
+    }
+
+    const safeFile = new File([file], safeFileName, { type: file.type });
+
+    const formData = new FormData();
+    formData.append("file", safeFile);
+
+    const token = localStorage.getItem("token");
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, 
+      },
+      body: formData,
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Upload failed");
+    }
+
+    return data.url;
+  } catch (err) {
+    console.error("Upload failed:", err);
+    alert("Image upload failed. Please try again.");
+    throw err;
+  } finally {
+    setIsUploadingImage(false);
+  }
+};
+
+  <input
+  type="file"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    handleImageUpload(file!);
+  }}
+/>
+
+
+
+  
 
   const handleSectionEdit = (sectionName: string, isEditing: boolean) => {
-    setEditingSections(prev => ({ ...prev, [sectionName]: isEditing }));
+    setEditingSections((prev) => ({ ...prev, [sectionName]: isEditing }));
   };
 
   const handleSectionSave = async (sectionName: string) => {
-    setSavingSections(prev => ({ ...prev, [sectionName]: true }));
+    setSavingSections((prev) => ({ ...prev, [sectionName]: true }));
     try {
       await updateProfile(profile);
-      setEditingSections(prev => ({ ...prev, [sectionName]: false }));
+      setEditingSections((prev) => ({ ...prev, [sectionName]: false }));
     } finally {
-      setSavingSections(prev => ({ ...prev, [sectionName]: false }));
+      setSavingSections((prev) => ({ ...prev, [sectionName]: false }));
     }
   };
 
@@ -162,7 +300,7 @@ export default function ProfileEditor({ member }: { member: Member }) {
             <div className="relative group">
               <div className="w-48 h-48 rounded-full overflow-hidden ring-8 ring-white/30 relative">
                 <Image
-                  src={profile.image || '/default-profile.png'}
+                  src={profile.image || "/default-profile.png"}
                   alt={profile.name}
                   width={192}
                   height={192}
@@ -191,7 +329,9 @@ export default function ProfileEditor({ member }: { member: Member }) {
               )}
             </div>
             <div className="text-center md:text-left text-white flex-1">
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">{profile.name}</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-2">
+                {profile.name}
+              </h1>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   {editingSections.header ? (
@@ -199,7 +339,9 @@ export default function ProfileEditor({ member }: { member: Member }) {
                       <input
                         type="text"
                         value={profile.role || ""}
-                        onChange={(e) => handleFieldChange("role", e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange("role", e.target.value)
+                        }
                         className="text-xl p-1 rounded text-black w-full"
                         placeholder="Role"
                       />
@@ -219,28 +361,28 @@ export default function ProfileEditor({ member }: { member: Member }) {
                 <div className="ml-4">
                   {editingSections.header ? (
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="secondary"
-                        onClick={() => handleSectionSave('header')}
+                        onClick={() => handleSectionSave("header")}
                         disabled={savingSections.header}
                       >
                         <Save className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
-                        onClick={() => handleSectionEdit('header', false)}
+                        onClick={() => handleSectionEdit("header", false)}
                       >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                   ) : (
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="text-white hover:bg-white/20"
-                      onClick={() => handleSectionEdit('header', true)}
+                      onClick={() => handleSectionEdit("header", true)}
                     >
                       <Edit3 className="w-4 h-4" />
                     </Button>
@@ -260,8 +402,8 @@ export default function ProfileEditor({ member }: { member: Member }) {
               isSaving={savingSections.about || false}
               value={profile.fullBio || ""}
               onChange={(val) => handleFieldChange("fullBio", val)}
-              onEdit={(editing) => handleSectionEdit('about', editing)}
-              onSave={() => handleSectionSave('about')}
+              onEdit={(editing) => handleSectionEdit("about", editing)}
+              onSave={() => handleSectionSave("about")}
             />
 
             <EditableListWithDateSection
@@ -271,18 +413,24 @@ export default function ProfileEditor({ member }: { member: Member }) {
                 Array.isArray(profile.education)
                   ? profile.education.map((item) =>
                       typeof item === "object"
-                        ? (item as { title: string; startDate?: Date; endDate?: Date })
+                        ? (item as {
+                            title: string;
+                            startDate?: Date;
+                            endDate?: Date;
+                          })
                         : { title: item as string }
                     )
                   : []
               }
               isEditing={editingSections.education || false}
               isSaving={savingSections.education || false}
-              onChange={(val: { title: string; startDate?: Date; endDate?: Date }[]) =>
-                handleFieldChange("education", val)
-              }
-              onEdit={(editing) => handleSectionEdit('education', editing)}
-              onSave={() => handleSectionSave('education')}
+              onChange={(val: {
+                title: string;
+                startDate?: Date;
+                endDate?: Date;
+              }[]) => handleFieldChange("education", val)}
+              onEdit={(editing) => handleSectionEdit("education", editing)}
+              onSave={() => handleSectionSave("education")}
             />
 
             <EditableListWithDateSection
@@ -292,18 +440,24 @@ export default function ProfileEditor({ member }: { member: Member }) {
                 Array.isArray(profile.achievements)
                   ? profile.achievements.map((item) =>
                       typeof item === "object"
-                        ? (item as { title: string; startDate?: Date; endDate?: Date })
+                        ? (item as {
+                            title: string;
+                            startDate?: Date;
+                            endDate?: Date;
+                          })
                         : { title: item as string }
                     )
                   : []
               }
               isEditing={editingSections.achievements || false}
               isSaving={savingSections.achievements || false}
-              onChange={(val: { title: string; startDate?: Date; endDate?: Date }[]) =>
-                handleFieldChange("achievements", val)
-              }
-              onEdit={(editing) => handleSectionEdit('achievements', editing)}
-              onSave={() => handleSectionSave('achievements')}
+              onChange={(val: {
+                title: string;
+                startDate?: Date;
+                endDate?: Date;
+              }[]) => handleFieldChange("achievements", val)}
+              onEdit={(editing) => handleSectionEdit("achievements", editing)}
+              onSave={() => handleSectionSave("achievements")}
             />
 
             <EditableListSection
@@ -311,38 +465,48 @@ export default function ProfileEditor({ member }: { member: Member }) {
               icon={<Briefcase className="w-6 h-6 text-purple-500" />}
               items={
                 Array.isArray(profile.career)
-                  ? profile.career.map(item =>
-                      typeof item === "string" ? item : `${item.title}${item.company ? ` at ${item.company}` : ""}${item.year ? ` (${item.year})` : ""}`
+                  ? profile.career.map((item) =>
+                      typeof item === "string"
+                        ? item
+                        : `${item.title}${item.company ? ` at ${item.company}` : ""}${
+                            item.year ? ` (${item.year})` : ""
+                          }`
                     )
                   : []
               }
               isEditing={editingSections.career || false}
               isSaving={savingSections.career || false}
               onChange={(val: string[]) => handleFieldChange("career", val)}
-              onEdit={(editing) => handleSectionEdit('career', editing)}
-              onSave={() => handleSectionSave('career')}
+              onEdit={(editing) => handleSectionEdit("career", editing)}
+              onSave={() => handleSectionSave("career")}
             />
           </div>
 
           <div className="space-y-6">
-            <ContactSection 
-              profile={profile} 
+            <ContactSection
+              profile={profile}
               isEditing={editingSections.contact || false}
               isSaving={savingSections.contact || false}
               onFieldChange={handleFieldChange}
-              onEdit={(editing) => handleSectionEdit('contact', editing)}
-              onSave={() => handleSectionSave('contact')}
+              onEdit={(editing) => handleSectionEdit("contact", editing)}
+              onSave={() => handleSectionSave("contact")}
             />
 
             <TagListSection
               title="Skills"
               icon={<Heart className="w-5 h-5 text-sky-500" />}
-              tags={Array.isArray(profile.skills) ? profile.skills : profile.skills ? [profile.skills].filter(Boolean) : []}
+              tags={
+                Array.isArray(profile.skills)
+                  ? profile.skills
+                  : profile.skills
+                  ? [profile.skills].filter(Boolean)
+                  : []
+              }
               isEditing={editingSections.skills || false}
               isSaving={savingSections.skills || false}
               onChange={(val) => handleFieldChange("skills", val)}
-              onEdit={(editing) => handleSectionEdit('skills', editing)}
-              onSave={() => handleSectionSave('skills')}
+              onEdit={(editing) => handleSectionEdit("skills", editing)}
+              onSave={() => handleSectionSave("skills")}
             />
 
             <TagListSection
@@ -352,8 +516,8 @@ export default function ProfileEditor({ member }: { member: Member }) {
               isEditing={editingSections.languages || false}
               isSaving={savingSections.languages || false}
               onChange={(val) => handleFieldChange("languages", val)}
-              onEdit={(editing) => handleSectionEdit('languages', editing)}
-              onSave={() => handleSectionSave('languages')}
+              onEdit={(editing) => handleSectionEdit("languages", editing)}
+              onSave={() => handleSectionSave("languages")}
             />
 
             <TagListSection
@@ -363,8 +527,8 @@ export default function ProfileEditor({ member }: { member: Member }) {
               isEditing={editingSections.hobbies || false}
               isSaving={savingSections.hobbies || false}
               onChange={(val) => handleFieldChange("hobbies", val)}
-              onEdit={(editing) => handleSectionEdit('hobbies', editing)}
-              onSave={() => handleSectionSave('hobbies')}
+              onEdit={(editing) => handleSectionEdit("hobbies", editing)}
+              onSave={() => handleSectionSave("hobbies")}
             />
 
             <TagListSection
@@ -375,7 +539,9 @@ export default function ProfileEditor({ member }: { member: Member }) {
                   ? profile.personality.map((item: any) =>
                       typeof item === "string"
                         ? item
-                        : typeof item === "object" && item !== null && "title" in item
+                        : typeof item === "object" &&
+                          item !== null &&
+                          "title" in item
                         ? String(item.title)
                         : ""
                     )
@@ -389,8 +555,8 @@ export default function ProfileEditor({ member }: { member: Member }) {
                   val.map((title) => ({ title }))
                 )
               }
-              onEdit={(editing) => handleSectionEdit('personality', editing)}
-              onSave={() => handleSectionSave('personality')}
+              onEdit={(editing) => handleSectionEdit("personality", editing)}
+              onSave={() => handleSectionSave("personality")}
             />
           </div>
         </div>
@@ -478,21 +644,28 @@ function EditableListWithDateSection({
     updated[index] = { ...updated[index], title: value };
     onChange(updated);
   };
+  
 
-  const handleDateChange = (index: number, key: "startDate" | "endDate", value: Date | null) => {
+  const handleDateChange = (
+    index: number,
+    key: "startDate" | "endDate",
+    value: Date | null
+  ) => {
     const updated = [...items];
     updated[index] = { ...updated[index], [key]: value || undefined };
     onChange(updated);
   };
 
-  const handleAdd = () => onChange([...items, { title: "", startDate: undefined, endDate: undefined }]);
-  const handleRemove = (index: number) => onChange(items.filter((_, i) => i !== index));
+  const handleAdd = () =>
+    onChange([...items, { title: "", startDate: undefined, endDate: undefined }]);
+  const handleRemove = (index: number) =>
+    onChange(items.filter((_, i) => i !== index));
 
   const formatDate = (date: Date | undefined) => {
     if (!date) return "";
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short' 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
     });
   };
 
@@ -518,10 +691,13 @@ function EditableListWithDateSection({
           </Button>
         )}
       </div>
-      
+
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="border rounded-lg p-4 bg-white dark:bg-slate-800">
+          <div
+            key={index}
+            className="border rounded-lg p-4 bg-white dark:bg-slate-800"
+          >
             {isEditing ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -531,16 +707,16 @@ function EditableListWithDateSection({
                     className="border rounded p-2 flex-1 text-sm"
                     placeholder="Title"
                   />
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     onClick={() => handleRemove(index)}
                     className="text-red-500 hover:text-red-700"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -548,7 +724,9 @@ function EditableListWithDateSection({
                     </label>
                     <DatePicker
                       selected={item.startDate}
-                      onChange={(date) => handleDateChange(index, "startDate", date)}
+                      onChange={(date) =>
+                        handleDateChange(index, "startDate", date)
+                      }
                       dateFormat="MM/yyyy"
                       showMonthYearPicker
                       placeholderText="Select start date"
@@ -556,7 +734,7 @@ function EditableListWithDateSection({
                       isClearable
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                       End Date
@@ -581,8 +759,8 @@ function EditableListWithDateSection({
                 </h3>
                 {(item.startDate || item.endDate) && (
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {formatDate(item.startDate)} 
-                    {item.startDate && item.endDate && " - "} 
+                    {formatDate(item.startDate)}
+                    {item.startDate && item.endDate && " - "}
                     {formatDate(item.endDate)}
                     {item.startDate && !item.endDate && " - Present"}
                   </p>
@@ -592,7 +770,7 @@ function EditableListWithDateSection({
           </div>
         ))}
       </div>
-      
+
       {isEditing && (
         <Button variant="outline" size="sm" onClick={handleAdd} className="w-full">
           <Plus className="w-4 h-4 mr-2" /> Add {title.slice(0, -1)}
@@ -660,7 +838,11 @@ function EditableListSection({
                 onChange={(e) => handleChange(index, e.target.value)}
                 className="border p-1 rounded flex-1"
               />
-              <Button size="icon" variant="ghost" onClick={() => handleRemove(index)}>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => handleRemove(index)}
+              >
                 <Trash2 className="w-4 h-4 text-red-500" />
               </Button>
             </>
@@ -704,19 +886,28 @@ function ContactSection({
     index: number,
     value: string
   ) => {
-    const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
+    const currentArray = Array.isArray(profile[field])
+      ? [...profile[field]]
+      : [];
     currentArray[index] = value;
     onFieldChange(field, currentArray as any);
   };
 
   const handleAddItem = (field: "email" | "phone" | "address") => {
-    const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
+    const currentArray = Array.isArray(profile[field])
+      ? [...profile[field]]
+      : [];
     currentArray.push("");
     onFieldChange(field, currentArray as any);
   };
 
-  const handleRemoveItem = (field: "email" | "phone" | "address", index: number) => {
-    const currentArray = Array.isArray(profile[field]) ? [...profile[field]] : [];
+  const handleRemoveItem = (
+    field: "email" | "phone" | "address",
+    index: number
+  ) => {
+    const currentArray = Array.isArray(profile[field])
+      ? [...profile[field]]
+      : [];
     currentArray.splice(index, 1);
     onFieldChange(field, currentArray as any);
   };
@@ -745,22 +936,26 @@ function ContactSection({
           <label className="block text-sm font-medium">{label}</label>
           {isEditing ? (
             <div className="space-y-2">
-              {(Array.isArray(profile[key]) ? profile[key] : []).map((value, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    value={value || ""}
-                    onChange={(e) => handleArrayFieldChange(key, index, e.target.value)}
-                    className="border rounded p-1 w-full"
-                  />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleRemoveItem(key, index)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
-              ))}
+              {(Array.isArray(profile[key]) ? profile[key] : []).map(
+                (value, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      value={value || ""}
+                      onChange={(e) =>
+                        handleArrayFieldChange(key, index, e.target.value)
+                      }
+                      className="border rounded p-1 w-full"
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleRemoveItem(key, index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                )
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -771,9 +966,11 @@ function ContactSection({
             </div>
           ) : (
             <div>
-              {(Array.isArray(profile[key]) ? profile[key] : []).map((value, index) => (
-                <p key={index}>{value}</p>
-              ))}
+              {(Array.isArray(profile[key]) ? profile[key] : []).map(
+                (value, index) => (
+                  <p key={index}>{value}</p>
+                )
+              )}
             </div>
           )}
         </div>
@@ -840,12 +1037,19 @@ function TagListSection({
                 onChange={(e) => handleChange(i, e.target.value)}
                 className="border px-2 py-1 rounded"
               />
-              <Button size="icon" variant="ghost" onClick={() => handleRemove(i)}>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => handleRemove(i)}
+              >
                 <Trash2 className="w-4 h-4 text-red-500" />
               </Button>
             </div>
           ) : (
-            <span key={i} className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm">
+            <span
+              key={i}
+              className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm"
+            >
               {tag}
             </span>
           )
@@ -857,12 +1061,5 @@ function TagListSection({
         </Button>
       )}
     </div>
-
   );
-  
-  
-  
-
-
-
 }
