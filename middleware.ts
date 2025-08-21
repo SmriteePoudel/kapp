@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, getAuthToken } from '@/lib/auth';
 
+function getBearerToken(request: NextRequest): string | undefined {
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+  if (!authHeader) return undefined;
+  const [scheme, token] = authHeader.split(' ');
+  if (!scheme || scheme.toLowerCase() !== 'bearer' || !token) return undefined;
+  return token;
+}
+
 export function middleware(request: NextRequest) {
-  const token = getAuthToken(request);
+  const cookieToken = getAuthToken(request);
   
   
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!token) {
+    if (!cookieToken) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
     }
     
-    const payload = verifyToken(token);
-    if (!payload) {
+    const payload = verifyToken(cookieToken);
+    if (!payload || !payload.roles || !Array.isArray(payload.roles)) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
     }
     
@@ -34,6 +42,7 @@ export function middleware(request: NextRequest) {
       '/api/portfolio',
       '/api/test-auth',
       '/api/auth/home',
+      '/api/upload-profile',
     ];
     
     const isPublicRoute = publicApiRoutes.some(route => 
@@ -41,12 +50,11 @@ export function middleware(request: NextRequest) {
     );
     
     if (!isPublicRoute) {
-      if (!token) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-      }
-      
-      const payload = verifyToken(token);
-      if (!payload) {
+      const bearerToken = getBearerToken(request);
+      const cookiePayload = cookieToken ? verifyToken(cookieToken) : null;
+      const bearerPayload = bearerToken ? verifyToken(bearerToken) : null;
+
+      if (!cookiePayload && !bearerPayload) {
         return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
       }
     }

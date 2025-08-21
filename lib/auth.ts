@@ -42,7 +42,7 @@ export async function setAuthCookie(payload: JwtPayload): Promise<void> {
     secure: process.env.NODE_ENV === 'production',
     maxAge: TOKEN_DURATION,
     path: '/',
-    sameSite: 'strict',
+    sameSite: 'lax',
   });
 }
 

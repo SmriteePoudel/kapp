@@ -1,12 +1,13 @@
 // app/api/upload/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { cookies as nextCookies } from "next/headers";
 import { writeFile, mkdir, stat } from "fs/promises";
 import path from "path";
 import { existsSync } from "fs";
-import { verifyToken } from "@/lib/auth"; 
+import { verifyToken, getAuthToken } from "@/lib/auth";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; 
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -18,25 +19,25 @@ const ALLOWED_FILE_TYPES = [
 
 export async function POST(req: NextRequest) {
   try {
-    if (!req.headers.has("authorization")) {
-      return NextResponse.json({ error: "No authorization header provided" }, { status: 401 });
+    // Prefer secure HttpOnly cookie; fall back to Authorization header.
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    // Try request cookies first, then global cookies (fallback), then Authorization header
+    let token: string | undefined = getAuthToken(req) || (await nextCookies()).get("auth-token")?.value || undefined;
+    if (!token && authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+      const parts = authHeader.split(" ");
+      token = parts.length > 1 ? parts[1] : undefined;
     }
-    const authHeader = req.headers.get("authorization"); 
-    if (!authHeader) {
-      return NextResponse.json({ error: "No authentication token found" }, { status: 401 });
-    }
-
-    const token = authHeader.split(" ")[1]; 
-    if (!token) {
-      return NextResponse.json({ error: "Invalid token format" }, { status: 401 });
+    // Ignore common invalid string tokens
+    if (!token || token === 'null' || token === 'undefined') {
+      return NextResponse.json({ error: "Authentication required (no cookie or bearer token)" }, { status: 401 });
     }
 
     const user = verifyToken(token);
     if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid token (failed to verify)" }, { status: 401 });
     }
 
-    
+
     const formData = await req.formData();
     const file = formData.get("file");
 
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    
+
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });

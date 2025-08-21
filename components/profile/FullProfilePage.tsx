@@ -146,20 +146,8 @@ export default function ProfileEditor({ member }: { member: Member }) {
       const formData = new FormData();
       formData.append("file", safeFile);
 
-      
-      const token = localStorage.getItem("token");
-      if (!token) {
-        
-        setIsUploadingImage(false);
-        return;
-      }
-
-      const res = await fetch("/api/upload", {
+      const res = await fetch("/api/upload-profile", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-         
-        },
         body: formData,
         credentials: "include",
       });
