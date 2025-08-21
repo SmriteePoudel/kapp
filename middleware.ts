@@ -13,6 +13,19 @@ export function middleware(request: NextRequest) {
   const cookieToken = getAuthToken(request);
   
   
+  if (request.nextUrl.pathname.startsWith('/_next') || 
+      request.nextUrl.pathname.startsWith('/images') ||
+      request.nextUrl.pathname.startsWith('/favicon.ico') ||
+      request.nextUrl.pathname.endsWith('.png') ||
+      request.nextUrl.pathname.endsWith('.jpg') ||
+      request.nextUrl.pathname.endsWith('.jpeg') ||
+      request.nextUrl.pathname.endsWith('.gif') ||
+      request.nextUrl.pathname.endsWith('.svg') ||
+      request.nextUrl.pathname.endsWith('.ico') ||
+      request.nextUrl.pathname.endsWith('.webp')) {
+    return NextResponse.next();
+  }
+  
   if (request.nextUrl.pathname.startsWith('/admin')) {
     if (!cookieToken) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
@@ -24,14 +37,13 @@ export function middleware(request: NextRequest) {
     }
     
     
-    if (!payload.roles.includes('ADMIN')) {
+    if (!payload.roles || !payload.roles.includes('ADMIN')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
   
- 
+  
   if (request.nextUrl.pathname.startsWith('/api')) {
-    
     const publicApiRoutes = [
       '/api/auth/signin',
       '/api/auth/register',

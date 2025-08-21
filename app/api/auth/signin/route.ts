@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { familyMembers } from '@/data/family';
 import { setAuthCookie } from '@/lib/auth';
 
 function generateSlug(name: string): string {
@@ -19,13 +18,22 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, password } = body;
 
+    // First check if user exists without including the role field
     const user = await prisma.user.findUnique({
       where: { email },
-      include: {
-        Member: true
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        name: true,
+        Member: {
+          select: {
+            id: true,
+            slug: true
+          }
+        }
       }
     });
-    
     
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -35,7 +43,6 @@ export async function POST(req: NextRequest) {
     if (!isMatch) {
       return NextResponse.json({ message: 'Invalid password' }, { status: 401 });
     }
-
     
     let member = null;
     if (!user.Member || user.Member.length === 0) {
@@ -44,13 +51,14 @@ export async function POST(req: NextRequest) {
       const memberData = {
         slug: slug,
         name: user.name || email.split('@')[0],
-        email: user.email,
+        email: [user.email],
         image: '/images/family1.png',
         role: 'Family Member',
         relationship: 'User',
         fullBio: `Member profile for ${user.name || email.split('@')[0]}`,
         personality: [],
         achievements: [],
+        userId: user.id
       };
       
       let uniqueSlug = slug;
@@ -64,7 +72,6 @@ export async function POST(req: NextRequest) {
         data: {
           ...memberData,
           slug: uniqueSlug,
-          userId: user.id
         }
       });
     } else {
@@ -74,9 +81,7 @@ export async function POST(req: NextRequest) {
     const payload: any = {
       id: user.id.toString(),
       email: user.email,
-      roles: user.roles as string[]
     };
-    
     
     if (user.name) {
       payload.name = user.name;
