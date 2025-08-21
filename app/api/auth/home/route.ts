@@ -14,11 +14,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ user: null }, { status: 401 });
     }
 
-    
     return NextResponse.json({
       user: {
         id: payload.id,
-        name: payload.name,
+        name: payload.name || null,
         email: payload.email,
       },
     });
