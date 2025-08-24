@@ -119,6 +119,7 @@ export default function SignUpPage() {
                     Account created successfully! Redirecting to home page...
                   </div>
                 )}
+                
 
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <div>
