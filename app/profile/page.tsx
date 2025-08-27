@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import FullProfilePageClient from "@/components/profile/FullProfilePage";
 import { Member } from "@/app/types/member";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,9 +14,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!loading && !user) {
+      
       router.push("/auth/signin");
     } else if (user) {
-      
       const fetchProfile = async () => {
         try {
           const res = await fetch("/api/members/me");
@@ -27,13 +27,17 @@ export default function ProfilePage() {
             } else {
               
               const memberData: Member = {
+                id: 0,
                 slug: "me",
                 name: user.name || user.email.split("@")[0],
                 image: "/images/family1.png",
                 role: "Family Member",
                 relationship: "User",
+                fullBio: `Welcome ${
+                  user.name || user.email.split("@")[0]
+                }! This is your personal profile page.`,
+
                 
-                fullBio: `Welcome ${user.name || user.email.split("@")[0]}! This is your personal profile page.`,
                 skills: [],
                 languages: [],
                 hobbies: [],
@@ -41,16 +45,21 @@ export default function ProfilePage() {
                 achievements: [],
                 education: [],
                 career: [],
-                id: 0,
                 phone: [],
                 address: [],
+
+                
+                birthday: "1999-08-27",
               };
               setMember(memberData);
             }
           } else {
-            
-            console.error("Failed to fetch profile:", res.status, res.statusText);
-            
+            console.error(
+              "Failed to fetch profile:",
+              res.status,
+              res.statusText
+            );
+
             try {
               const errorData = await res.json();
               console.error("Error data:", errorData);
@@ -82,8 +91,7 @@ export default function ProfilePage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6"> Profile</h1>
-      
+      <h1 className="text-3xl font-bold mb-6">Profile</h1>
       {member && <FullProfilePageClient member={member} />}
     </div>
   );

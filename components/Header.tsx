@@ -238,55 +238,8 @@ export default function Header() {
         </div>
       );
     }
-   
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    
     return (
       <Link href="/auth/signin">
         <Button className="px-6 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg transition-all duration-200">
@@ -337,6 +290,7 @@ export default function Header() {
               {!mounted ? (
                 <div className="h-5 w-5" />
               ) : resolvedTheme === "dark" ? (
+                
                 <Sun className="h-5 w-5" />
               ) : (
                 <Moon className="h-5 w-5" />

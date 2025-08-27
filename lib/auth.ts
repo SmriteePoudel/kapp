@@ -8,6 +8,7 @@ const TOKEN_DURATION = 60 * 60 * 24 * 7; // 7 days
 
 
 export interface JwtPayload {
+  birthday: undefined;
   id: string;
   email: string;
   name?: string;

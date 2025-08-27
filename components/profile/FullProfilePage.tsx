@@ -22,8 +22,11 @@ import {
   Smile,
   Languages,
   X,
+  Calendar,
 } from "lucide-react";
 import type { Member } from "@/app/types/member";
+import { useRouter } from "next/router";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ImageUploadProps {
   onImageUpload: (file: File) => Promise<void>;
@@ -107,9 +110,21 @@ export default function ProfileEditor({ member }: { member: Member }) {
   const [savingSections, setSavingSections] = useState<Record<string, boolean>>({});
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+ useAuth();
+  
+  const [] = useState(true);
+
   const handleFieldChange = <K extends keyof Member>(field: K, value: Member[K]) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
-  };
+  setProfile((prev) => {
+    if (field === "birthday" && value instanceof Date) {
+      return { ...prev, [field]: value.toISOString() as Member[K] };
+    }
+    return { ...prev, [field]: value };
+  });
+};
+
+
+
 
   const updateProfile = async (updatedData: Member) => {
     try {
@@ -386,6 +401,22 @@ export default function ProfileEditor({ member }: { member: Member }) {
           </div>
 
           <div className="space-y-6">
+           
+            <BirthdaySection
+              birthday={profile.birthday}
+              isEditing={editingSections.birthday || false}
+              isSaving={savingSections.birthday || false}
+              onChange={(val) =>
+              handleFieldChange(
+                "birthday",
+                val instanceof Date ? val.toISOString() : val
+                )
+              }
+              onEdit={(editing) => handleSectionEdit("birthday", editing)}
+              onSave={() => handleSectionSave("birthday")}
+             />
+
+
             <ContactSection
               profile={profile}
               isEditing={editingSections.contact || false}
@@ -468,7 +499,74 @@ export default function ProfileEditor({ member }: { member: Member }) {
   );
 }
 
+function BirthdaySection({
+  birthday,
+  isEditing,
+  isSaving,
+  onChange,
+  onEdit,
+  onSave,
+}: {
+  birthday?: string | Date;
+  isEditing: boolean;
+  isSaving: boolean;
+  onChange: (date: Date | undefined) => void;
+  onEdit: (editing: boolean) => void;
+  onSave: () => void;
+}) {
+  const formatDate = (date: string | undefined) => {
+    if (!date) return "Not set";
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Calendar className="w-5 h-5 text-blue-500" />
+          <h2 className="text-xl font-semibold">Birthday</h2>
+        </div>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onSave} disabled={isSaving}>
+              <Save className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => onEdit(true)}>
+            <Edit3 className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+      {isEditing ? (
+        <DatePicker
+          selected={birthday? new Date(birthday): null}
+          onChange={(date) => onChange(date || undefined)}
+          dateFormat="MMMM d, yyyy"
+          showYearDropdown
+          dropdownMode="select"
+          className="w-full border rounded p-2"
+          placeholderText="Select birthday"
+        />
+      ) : (
+        <p>
+    {birthday
+      ? birthday instanceof Date
+        ? birthday.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+        : new Date(birthday).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      : "Not set"}
+  </p>
+      )}
+    </div>
+  );
+}
 
 function Section({
   title,
@@ -885,7 +983,7 @@ function ContactSection({
 
 function TagListSection({
   title,
-  icon,
+  icon,  
   tags,
   isEditing,
   isSaving,

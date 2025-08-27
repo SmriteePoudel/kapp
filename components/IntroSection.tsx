@@ -5,8 +5,8 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { Trees, ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
-import { motion, useAnimation } from "framer-motion";
-import { useInView } from 'react-intersection-observer';
+import { motion } from "framer-motion";
+
 
 const IntroSection: FC = () => {
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false);

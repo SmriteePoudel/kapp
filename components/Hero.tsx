@@ -12,10 +12,10 @@ export default function Hero() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Only auto-collapse if user hasn't manually toggled
+      
       if (!isManuallyToggled) {
         const scrollY = window.scrollY;
-        const shouldCollapse = scrollY > 100; // Collapse after scrolling 100px
+        const shouldCollapse = scrollY > 100; 
         setIsCollapsed(shouldCollapse);
       }
     };
@@ -28,15 +28,14 @@ export default function Hero() {
     setIsManuallyToggled(true);
     setIsCollapsed(!isCollapsed);
     
-    // Reset manual toggle after 3 seconds to re-enable auto-scroll behavior
     setTimeout(() => {
       setIsManuallyToggled(false);
     }, 3000);
   };
 
   return (
-    <section className="relative bg-white dark:bg-slate-900 overflow-hidden sticky top-0 z-40 shadow-sm">
-      {/* Collapse/Expand Button */}
+    <section className="relative bg-white dark:bg-slate-900 overflow-hidden top-0 z-40 shadow-sm">
+      
       <div className="container mx-auto px-4 pt-4">
         <div className="flex justify-end">
           <Button
@@ -72,7 +71,7 @@ export default function Hero() {
             <div className="py-24">
               <div className="container mx-auto px-4 relative">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-                  {/* Text Content */}
+                  
                   <motion.div
                     className="space-y-6 text-center md:text-left"
                     initial={{ opacity: 0, y: 20 }}
@@ -115,7 +114,7 @@ export default function Hero() {
                     </div>
                   </motion.div>
 
-                  {/* Image Container */}
+                  
                   <motion.div
                     className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group"
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -139,12 +138,12 @@ export default function Hero() {
                       />
                     </motion.div>
 
-                    {/* Decorative Elements */}
+                   
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-slate-900 to-transparent z-20" />
                   </motion.div>
                 </div>
 
-                {/* Animated Background Elements */}
+                
                 <motion.div
                   className="absolute inset-0 pointer-events-none"
                   initial={{ opacity: 0 }}
@@ -160,7 +159,7 @@ export default function Hero() {
         )}
       </AnimatePresence>
 
-      {/* Collapsed State - Optional minimal header */}
+      
       {isCollapsed && (
         <motion.div
           initial={{ opacity: 0 }}

@@ -32,19 +32,20 @@ export interface Member {
   email?: string[];          
   phone?: string[];
   address?: string[];
-  birthdate?: string;
+  birthdate?: string | Date;
   favoriteQuote?: string;
   skills?: string[];
   languages?: string[];
   hobbies?: string[];
   personality?: string[] | { title: string }[];
-
+  
   achievements?: Achievement[];
   education?: Education[];
   career?: string[] | CareerItem[];
 
   createdAt?: string;
   updatedAt?: string;
+  birthday?: string; 
 }
 
 export interface FamilyMember extends Member {
