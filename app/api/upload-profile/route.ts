@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies as nextCookies } from "next/headers";
 import { writeFile, mkdir, stat } from "fs/promises";
 import path from "path";
+import {prisma} from "@/lib/prisma";;
 import { existsSync } from "fs";
 import { verifyToken, getAuthToken } from "@/lib/auth";
 
@@ -21,15 +22,15 @@ const ALLOWED_FILE_TYPES = [
 
 export async function POST(req: NextRequest) {
   try {
-    // Prefer secure HttpOnly cookie; fall back to Authorization header.
+    
     const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-    // Try request cookies first, then global cookies (fallback), then Authorization header
+   
     let token: string | undefined = getAuthToken(req) || (await nextCookies()).get("auth-token")?.value || undefined;
     if (!token && authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
       const parts = authHeader.split(" ");
       token = parts.length > 1 ? parts[1] : undefined;
     }
-    // Ignore common invalid string tokens
+    
     if (!token || token === 'null' || token === 'undefined') {
       return NextResponse.json({ error: "Authentication required (no cookie or bearer token)" }, { status: 401 });
     }
@@ -98,6 +99,9 @@ export async function POST(req: NextRequest) {
     console.error("❌ Upload error:", error);
     return NextResponse.json({ error: error.message || "Upload failed" }, { status: 500 });
   }
+  
+  
+  
 }
 
 export async function GET() {

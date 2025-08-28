@@ -3,13 +3,30 @@ import { familyMembers } from '@/data/family';
 import prisma from '@/lib/prisma';
 import { getAuthToken, verifyToken } from '@/lib/auth';
 
-async function resolveSlug(slug:string,request:NextRequest){
-  if (slug !== 'me')return slug;
+async function resolveSlug(slug: string, request: NextRequest) {
+  if (slug !== 'me') return slug;
+  
   const session = await getServerSession(request);
-  if (!session?.user?.slug){
+  if (!session?.user) {
     throw new Error('Not authenticated');
   }
+  if (!session.user.slug) {
+    throw new Error('User profile not found. Please create your profile first.');
+  }
+  
   return session.user.slug;
+}
+
+async function generateUniqueSlug(baseSlug: string): Promise<string> {
+  let slug = baseSlug;
+  let counter = 1;
+  
+  while (await prisma.member.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  return slug;
 }
 
 export async function PUT(
@@ -17,10 +34,9 @@ export async function PUT(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     
     console.log('PUT request received for slug:', slug);
-    
     
     let updateData;
     try {
@@ -34,7 +50,6 @@ export async function PUT(
       );
     }
 
-    
     if (!slug) {
       console.error('No slug provided');
       return NextResponse.json(
@@ -43,15 +58,12 @@ export async function PUT(
       );
     }
 
-    
     const resolvedSlug = await resolveSlug(slug, request);
 
-    
     let dbMember = await prisma.member.findUnique({
       where: { slug: resolvedSlug },
     });
 
-    
     if (!dbMember) {
       console.log('Member not found in database, checking in-memory data for slug:', slug);
       const memberIndex = familyMembers.findIndex(m => m.slug === slug);
@@ -66,7 +78,6 @@ export async function PUT(
 
       console.log('Found member in in-memory data at index:', memberIndex);
       const originalMember = familyMembers[memberIndex];
-      
       
       dbMember = await prisma.member.create({
         data: {
@@ -93,7 +104,6 @@ export async function PUT(
 
     console.log('Found member in database:', dbMember.name);
 
-    
     const updatePayload: any = {
       name: updateData.name || dbMember.name,
       image: updateData.image || dbMember.image,
@@ -113,13 +123,10 @@ export async function PUT(
       ) : dbMember.achievements,
     };
 
-    
     if (updateData.education && Array.isArray(updateData.education)) {
-      
       await prisma.education.deleteMany({
         where: { memberId: dbMember.id },
       });
-      
       
       const educationData = updateData.education.map((edu: any) => ({
         title: typeof edu === 'string' ? edu : edu.title,
@@ -136,11 +143,9 @@ export async function PUT(
     }
 
     if (updateData.achievements && Array.isArray(updateData.achievements)) {
-      
       await prisma.achievement.deleteMany({
         where: { memberId: dbMember.id },
       });
-      
       
       const achievementData = updateData.achievements.map((ach: any) => ({
         title: typeof ach === 'string' ? ach : ach.title,
@@ -154,18 +159,17 @@ export async function PUT(
         });
       }
     }
-    console.log('Preparing to update member in database with payload:',updatePayload);
+    
+    console.log('Preparing to update member in database with payload:', updatePayload);
     updatePayload.updatedAt = new Date().toISOString();
-    if (updateData.createdAt){
+    if (updateData.createdAt) {
       updatePayload.createdAt = updateData.createdAt;
     }
     if (updateData.id) {
       updatePayload.id = updateData.id;
-
       console.log('Using provided ID for update:', updateData.id);
     }
 
-    
     const updatedDbMember = await prisma.member.update({
       where: { id: dbMember.id },
       data: updatePayload,
@@ -173,7 +177,6 @@ export async function PUT(
 
     console.log('Member updated successfully in database');
 
-    
     const memberIndex = familyMembers.findIndex(m => m.slug === slug);
     if (memberIndex !== -1) {
       familyMembers[memberIndex] = {
@@ -184,7 +187,6 @@ export async function PUT(
       console.log('Member updated successfully in in-memory array');
     }
 
-    
     const updatedMemberWithRelations = await prisma.member.findUnique({
       where: { id: updatedDbMember.id },
       include: {
@@ -193,7 +195,6 @@ export async function PUT(
       },
     });
 
-    
     const updatedMember = {
       ...updatedMemberWithRelations,
       image: updatedMemberWithRelations?.image || '/images/oldman.webp',
@@ -235,7 +236,7 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params;
+    const { slug } = params;
     console.log('GET request received for slug:', slug);
 
     if (!slug) {
@@ -245,9 +246,141 @@ export async function GET(
       );
     }
 
+    let resolvedSlug: string;
     
-    const resolvedSlug = await resolveSlug(slug, request);
+    if (slug === 'me') {
+      const session = await getServerSession(request);
+      if (!session?.user) {
+        return NextResponse.json(
+          { error: 'Not authenticated' },
+          { status: 401 }
+        );
+      }
+      
+      
+      if (!session.user.slug) {
+        
+        const existingMember = await prisma.member.findFirst({
+          where: { userId: Number(session.user.id) },
+          include: {
+            Achievement: true,
+            Education: true,
+          },
+        });
 
+        if (existingMember) {
+          
+          if (!existingMember.slug) {
+            const baseSlug = `user-${session.user.id}`;
+            const uniqueSlug = await generateUniqueSlug(baseSlug);
+            
+            const updatedMember = await prisma.member.update({
+              where: { id: existingMember.id },
+              data: { slug: uniqueSlug },
+              include: {
+                Achievement: true,
+                Education: true,
+              },
+            });
+            
+            const member = {
+              ...updatedMember,
+              image: updatedMember.image || '/images/oldman.webp',
+              education: updatedMember.Education.map(edu => ({
+                title: edu.title,
+                startYear: edu.startYear,
+                endYear: edu.endYear
+              })),
+              achievements: updatedMember.Achievement.map(ach => ({ 
+                title: ach.title, 
+                year: ach.date ? new Date(ach.date).getFullYear() : undefined 
+              })),
+              career: updatedMember.career || [],
+              skills: updatedMember.skills || [],
+              languages: updatedMember.languages || [],
+              hobbies: updatedMember.hobbies || [],
+              personality: updatedMember.personality || [],
+              birthdate: updatedMember.fullBio || "",
+            };
+
+            return NextResponse.json({
+              success: true,
+              data: member
+            });
+          } else {
+            resolvedSlug = existingMember.slug;
+          }
+        } else {
+          
+          const baseSlug = `user-${session.user.id}`;
+          const uniqueSlug = await generateUniqueSlug(baseSlug);
+          
+          
+          const userId = Number(session.user.id);
+          
+          
+          const userExists = await prisma.user.findUnique({
+            where: { id: userId }
+          });
+
+          const newMember = await prisma.member.create({
+            data: {
+              slug: uniqueSlug,
+              userId: userExists ? userId : null, 
+              name: session.user.name || 'New User',
+              image: '/images/welcome-avatar.png',
+              role: 'Member',
+              relationship: 'Family Member',
+              fullBio: '',
+              email: session.user.email ? [session.user.email] : [],
+              phone: [],
+              address: [],
+              career: [],
+              skills: [],
+              languages: [],
+              hobbies: [],
+              personality: [],
+              achievements: [],
+            },
+            include: {
+              Achievement: true,
+              Education: true,
+            },
+          });
+
+          const member = {
+            ...newMember,
+            image: newMember.image || '/images/oldman.webp',
+            education: newMember.Education.map(edu => ({
+              title: edu.title,
+              startYear: edu.startYear,
+              endYear: edu.endYear
+            })),
+            achievements: newMember.Achievement.map(ach => ({ 
+              title: ach.title, 
+              year: ach.date ? new Date(ach.date).getFullYear() : undefined 
+            })),
+            career: newMember.career || [],
+            skills: newMember.skills || [],
+            languages: newMember.languages || [],
+            hobbies: newMember.hobbies || [],
+            personality: newMember.personality || [],
+            birthdate: newMember.fullBio || "",
+          };
+
+          return NextResponse.json({
+            success: true,
+            data: member
+          });
+        }
+      } else {
+        resolvedSlug = session.user.slug;
+      }
+    } else {
+      resolvedSlug = slug;
+    }
+
+    console.log('Looking for member with resolved slug:', resolvedSlug);
     
     const dbMember = await prisma.member.findUnique({
       where: { slug: resolvedSlug },
@@ -258,25 +391,29 @@ export async function GET(
     });
 
     if (dbMember) {
+      console.log('Member found in database:', dbMember.name);
       
       const member = {
         ...dbMember,
         image: dbMember.image || '/images/oldman.webp',
-        education: dbMember.Education.map(edu => ({
-          title: edu.title,
+        education: (dbMember.Education || []).map(edu => ({
+          title: edu.title || '',
           startYear: edu.startYear,
           endYear: edu.endYear
         })),
-        achievements: dbMember.Achievement.map(ach => ({ title: ach.title, year: ach.date ? new Date(ach.date).getFullYear() : undefined })),
-        career: dbMember.career || [],
-        skills: dbMember.skills || [],
-        languages: dbMember.languages || [],
-        hobbies: dbMember.hobbies || [],
-        personality: dbMember.personality || [],
+        achievements: (dbMember.Achievement || []).map(ach => ({ 
+          title: ach.title || '', 
+          year: ach.date ? new Date(ach.date).getFullYear() : undefined 
+        })),
+        career: Array.isArray(dbMember.career) ? dbMember.career : [],
+        skills: Array.isArray(dbMember.skills) ? dbMember.skills : [],
+        languages: Array.isArray(dbMember.languages) ? dbMember.languages : [],
+        hobbies: Array.isArray(dbMember.hobbies) ? dbMember.hobbies : [],
+        personality: Array.isArray(dbMember.personality) ? dbMember.personality : [],
         birthdate: dbMember.fullBio || "",
       };
 
-      console.log('Member found in database:', member.name);
+      console.log('Returning member data successfully');
 
       return NextResponse.json({
         success: true,
@@ -284,14 +421,13 @@ export async function GET(
       });
     }
 
-    
-    console.log('Member not found in database, checking in-memory data for slug:', slug);
-    const member = familyMembers.find(m => m.slug === slug);
+    console.log('Member not found in database, checking in-memory data for slug:', resolvedSlug);
+    const member = familyMembers.find(m => m.slug === resolvedSlug);
 
     if (!member) {
-      console.log('Member not found for slug:', slug);
+      console.log('Member not found for slug:', resolvedSlug);
       return NextResponse.json(
-        { error: `Member not found with slug: ${slug}` },
+        { error: `Member not found with slug: ${resolvedSlug}` },
         { status: 404 }
       );
     }
@@ -327,23 +463,36 @@ async function getServerSession(request: NextRequest) {
     console.log('Invalid token');
     return null;
   }
-  
-  
-  
-  const member = await prisma.member.findFirst({
-    where: {
-      userId: parseInt(payload.id, 10)
+
+  let member = null;
+
+  try {
+    const userId = isNaN(Number(payload.id)) ? null : Number(payload.id);
+
+    if (userId) {
+      
+      const userExists = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (userExists) {
+        member = await prisma.member.findFirst({
+          where: { userId },
+        });
+      }
     }
-  });
-  
+  } catch (err) {
+    console.error("Error fetching member in getServerSession:", err);
+  }
+
   console.log('Member found for userId', payload.id, ':', member);
-  
+  console.log('Session payload:', payload);
   return {
     user: {
       id: payload.id,
       email: payload.email,
       name: payload.name,
-      slug: member?.slug
-    }
+      slug: member?.slug || null,
+    },
   };
 }
