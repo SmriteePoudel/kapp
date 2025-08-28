@@ -68,6 +68,7 @@ export interface MemberUpdate {
   email?: string[];
   phone?: string[];
   address?: string[];
+  birthday?: string[];
   skills?: string[];
   languages?: string[];
   hobbies?: string[];
@@ -75,4 +76,12 @@ export interface MemberUpdate {
   achievements?: Achievement[];
   education?: Education[];
   career?: string[] | CareerItem[];
+}
+export interface AuthStatus{
+  isAuthenticated: boolean;
+  user?:{
+    id: string;
+    name?: string;
+    email: string;
+  };
 }
